@@ -1,0 +1,18 @@
+# The files to ignore in a git commit
+
+# The huge data folder
+Data/
+
+# The checkpoint files for the models
+**.pt
+**.pth
+
+# The output files and error files, as well as the waitandrun.sh bash scripts
+**.sh
+**.err
+**.out
+
+
+# Temporary files by comiling
+**__**
+
