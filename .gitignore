@@ -11,7 +11,10 @@ Data/
 **.sh
 **.err
 **.out
+**pidfile.txt
 
+# Visualization files that should be locally run and not shared
+**.ipynb
 
 # Temporary files by comiling
 **__**
