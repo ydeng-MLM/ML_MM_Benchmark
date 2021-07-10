@@ -3,6 +3,10 @@
 # The huge data folder
 Data/
 
+# The model files trained
+*/models
+*/data
+
 # The checkpoint files for the models
 **.pt
 **.pth
@@ -18,4 +22,8 @@ Data/
 
 # Temporary files by comiling
 **__**
+
+# Compressed big files like tar and gunzip (usually hosting datasets)
+*.tar
+*.gz
 
