@@ -66,7 +66,7 @@ class Network(object):
         :param z_mean: The z mean vector for VAE kl_loss
         :return: the total loss
         """
-        mse_loss = nn.functional.mse_loss(logit, labels, reduction='sum')          # The MSE Loss
+        mse_loss = nn.functional.mse_loss(logit, labels, reduction='mean')          # The MSE Loss
         return mse_loss
 
     def make_optimizer(self):
@@ -196,24 +196,20 @@ class Network(object):
         Ypred_file = os.path.join(save_dir, 'test_Ypred_{}.csv'.format(saved_model_str))
         Xtruth_file = os.path.join(save_dir, 'test_Xtruth_{}.csv'.format(saved_model_str))
         Ytruth_file = os.path.join(save_dir, 'test_Ytruth_{}.csv'.format(saved_model_str))
-        Xpred_file = os.path.join(save_dir, 'test_Xpred_{}.csv'.format(saved_model_str))
 
         tk = time_keeper(os.path.join(save_dir, 'evaluation_time.txt'))
         # Open those files to append
         with open(Xtruth_file, 'a') as fxt,open(Ytruth_file, 'a') as fyt,\
-                open(Ypred_file, 'a') as fyp, open(Xpred_file, 'a') as fxp:
+                open(Ypred_file, 'a') as fyp:
             # Loop through the eval data and evaluate
             for ind, (geometry, spectra) in enumerate(self.test_loader):
                 if cuda:
                     geometry = geometry.cuda()
                     spectra = spectra.cuda()
-                Xpred = self.model.inference(spectra).cpu().data.numpy()
+                Ypred = self.model(geometry).cpu().data.numpy()
                 np.savetxt(fxt, geometry.cpu().data.numpy())
                 np.savetxt(fyt, spectra.cpu().data.numpy())
-                np.savetxt(fxp, Xpred)
-                if self.flags.data_set != 'Yang_sim':
-                    Ypred = simulator(self.flags.data_set, Xpred)
-                    np.savetxt(fyp, Ypred)
+                np.savetxt(fyp, Ypred)
         tk.record(1)                # Record the total time of the eval period
         return Ypred_file, Ytruth_file
     
