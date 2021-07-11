@@ -27,7 +27,12 @@ def training_from_flag(flags):
 
     # Make Network
     ntwk = Network(Transformer, flags, train_loader, test_loader)
-
+    
+    # Get the number of trainable parameters
+    pytorch_total_params = sum(p.numel() for p in ntwk.model.parameters() if p.requires_grad)
+    print("number of trainable parameters is : ", pytorch_total_params)
+    flags.trainable_param = pytorch_total_params
+    
     # Training process
     print("Start training now...")
     ntwk.train()
@@ -56,19 +61,29 @@ def hyperswipe():
     """
     This is for doing hyperswiping for the model parameters
     """
-    reg_scale_list = [1e-4]
-    feature_channel_num_list = [ 8, 32, 128]
-    nhead_encoder_list = [2, 4, 8]
-    dim_fc_encoder_list = [32, 64, 128]
+    # reg_scale_list = [1e-4]
+    feature_channel_num_list = [128]
+    nhead_encoder_list = [8]
+    #feature_channel_num_list = [32, 128]
+    #nhead_encoder_list = [4, 8]
+    dim_fc_encoder_list = [32, 128]
+    fc_layer_num_list = range(6)
+    layer_node_num_list = [200, 500]
     for feature_channel_num in feature_channel_num_list:
         for nhead_encoder in nhead_encoder_list:
             for dim_fc_encoder in dim_fc_encoder_list:
-                flags = flag_reader.read_flag()  	#setting the base case
-                flags.feature_channel_num = feature_channel_num
-                flags.nhead_encoder = nhead_encoder
-                flags.dim_fc_encoder_list = dim_fc_encoder_list
-                flags.model_name = flags.data_set + '_feature_channel_' + str(feature_channel_num) + '_natthead_' + str(nhead_encoder) + '_dim_fc_' + str(dim_fc_encoder)
-                training_from_flag(flags)
+                for fc_layer_num in fc_layer_num_list:
+                    for layer_node_num in layer_node_num_list:
+                        flags = flag_reader.read_flag()  	#setting the base case
+                        flags.feature_channel_num = feature_channel_num
+                        flags.nhead_encoder = nhead_encoder
+                        flags.dim_fc_encoder_list = dim_fc_encoder_list
+                        flags.linear = [layer_node_num for i in range(fc_layer_num)] + [flags.dim_S]
+                        print('linear layer here is ', flags.linear)
+                        flags.model_name = flags.data_set + '_feature_channel_' + str(feature_channel_num) + \
+                                            '_natthead_' + str(nhead_encoder) + '_dim_fc_' + str(dim_fc_encoder) +\
+                                            '_num_layer_' + str(fc_layer_num) + '_node_' + str(layer_node_num)
+                        training_from_flag(flags)
 
 if __name__ == '__main__':
     # torch.manual_seed(1)

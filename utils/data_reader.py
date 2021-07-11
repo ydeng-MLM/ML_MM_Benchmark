@@ -187,23 +187,6 @@ def normalize_np(x):
         assert np.min(x[:, i]) + 1 < 0.0001, 'your normalization is wrong'
     return x
 
-
-def read_data_chen(flags, eval_data_all=False):
-    # Read the data
-    print("flgas.data_dir = ", flags.data_dir)
-    data_dir = os.path.join(flags.data_dir, 'Chen')
-    print("data_dir = ", data_dir)
-    data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None).astype('float32').values
-    data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None).astype('float32').values
-
-    # The geometric boundary of Chen dataset is [5, 50], normalizing manually
-    data_x = (data_x - 27.5) / 22.5
-    
-    if eval_data_all:
-        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
-
-    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=flags.test_ratio)
-
 def read_data_peurifoy(flags, eval_data_all=False):
     """
     Data reader function for the gaussian mixture data set
@@ -282,8 +265,6 @@ def read_data(flags, eval_data_all=False):
             flags.geoboundary_norm = [-1, 1, -1, 1]
     elif flags.data_set == 'Peurifoy':
         train_loader, test_loader = read_data_peurifoy(flags,eval_data_all=eval_data_all)
-    elif flags.data_set == 'Chen':
-        train_loader, test_loader =read_data_chen(flags,eval_data_all=eval_data_all)
     elif flags.data_set == 'Yang_sim':
         train_loader, test_loader =read_data_Yang_sim(flags,eval_data_all=eval_data_all)
     else:

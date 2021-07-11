@@ -16,13 +16,9 @@ def get_test_ratio_helper(flags):
     The unified place for getting the test_ratio the same for all methods for the dataset,
     This is for easier changing for multi_eval
     """
-    if flags.data_set == 'Chen':
-        #return 0.00781                       # 100 in total
-        return 0.25
-        #return 0.039                        # 500 in total
-    elif flags.data_set == 'Peurifoy':
-        #return 0.0125                        # 100 in total
-        return 0.25
+    if flags.data_set == 'Peurifoy':
+        return 0.02                        # 1000 in total
+        #return 0.25
         #return 0.1
         #return 0.0625                        # 500 in total
     elif 'Yang' in flags.data_set:

@@ -996,13 +996,10 @@ if __name__ == '__main__':
 
     # NIPS version 
     work_dir = '/home/sr365/mm_bench_multi_eval'
-    #work_dir = '/home/sr365/mm_bench_multi_eval_Chen_sweep'
     #lr_list = [10, 1, 0.1, 0.01, 0.001]
     MeanAvgnMinMSEvsTry_all(work_dir)
-    #datasets = ['Yang_sim','Chen','Peurifoy']
+    #datasets = ['Yang_sim','Peurifoy']
     #datasets = ['Yang_sim']
-    datasets = ['Chen']
-    #datasets = ['Chen','Peurifoy']
     #for lr in lr_list:
     for dataset in datasets:
         #DrawAggregateMeanAvgnMSEPlot(work_dir, dataset, resolution=5)

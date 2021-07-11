@@ -6,6 +6,8 @@ all the parameters during training and inference
 import argparse
 import pickle
 import os
+
+from torch.nn.modules.linear import Linear
 # Libs
 
 # Own module
@@ -29,6 +31,8 @@ def read_flag():
     parser.add_argument('--nhead-encoder', default=NHEAD_ENCODER, type=int, help='the number of attention head of encoder')
     parser.add_argument('--dim-fc-encoder', default=DIM_FC_ENCODER, type=int, help='the dim of FC layer in encoder')
     parser.add_argument('--num-encoder-layer', default=NUM_ENCODER_LAYER, type=int, help='the number of encoder layers')
+    parser.add_argument('--linear', default=LINEAR, type=list, help='the fully connected layers')
+    
     # Optimizer specific parameter
     parser.add_argument('--optim', default=OPTIM, type=str, help='the type of optimizer that you want to use')
     parser.add_argument('--reg-scale', type=float, default=REG_SCALE, help='#scale for regularization of dense layers')

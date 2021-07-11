@@ -19,6 +19,8 @@ FEATURE_CHANNEL_NUM = 8     # The number of channels for the feature
 NHEAD_ENCODER = 4           # Multi-head attention network, number of heads
 DIM_FC_ENCODER = 64        # The dimension of the FC layer in each layer of the encoder
 NUM_ENCODER_LAYER = 6       # Number of encoder layers for the whole Transformer encoder 
+LINEAR = [500, 500, 500, DIM_S]
+
 
 # Optimizer parameters
 OPTIM = "Adam"

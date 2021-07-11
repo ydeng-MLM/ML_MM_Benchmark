@@ -14,7 +14,6 @@ import sys
 import pickle
 import numpy as np
 from Data.Peurifoy.generate_Peurifoy import simulate as peur_sim
-from Data.Chen.generate_chen import simulate as chen_sim
 # from ensemble_mm.predict_ensemble import ensemble_predict_master
 # 1
 def get_Xpred(path, name=None):
@@ -210,10 +209,6 @@ def simulator(data_set, Xpred):
             spec = peur_sim(Xpred[i, :])
             Ypred.append(spec)
         return np.array(Ypred)
-    elif data_set == 'Chen':
-        # The geometric boundary of Chen dataset is [5, 50], unnormalizing manually
-        Xpred = Xpred*22.5+27.5
-        return chen_sim(Xpred)
     elif data_set == 'Yang':
         sys.exit("You are using Yang dataset, there is no simulator built-in for Yang! Please use neural simulator")
     else:

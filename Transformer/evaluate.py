@@ -13,8 +13,6 @@ from utils import data_reader
 from utils import helper_functions
 from utils.evaluation_helper import plotMSELossDistrib
 from utils.evaluation_helper import get_test_ratio_helper
-# Libs
-from NA import predict
 
 
 def predict(model_dir, Ytruth_file ,multi_flag=False):
@@ -147,7 +145,7 @@ if __name__ == '__main__':
     #evaluate_from_model(useless_flags.eval_model, multi_flag=True)
     #evaluate_from_model(useless_flags.eval_model, multi_flag=False, eval_data_all=True)
     
-    evaluate_from_model("models/Peurifoy_feature_channel_8_natthead_8_dim_fc_128")
+    #evaluate_from_model("models/Peurifoy_feature_channel_8_natthead_8_dim_fc_128")
     
     ############################
     #Multiple model evaluation #
@@ -156,7 +154,7 @@ if __name__ == '__main__':
     #evaluate_different_dataset(multi_flag=False, eval_data_all=False)
     #evaluate_different_dataset(multi_flag=True, eval_data_all=False)
     #evaluate_different_dataset(multi_flag=True)
-    #evaluate_all("models/Yang/sweep4/")
+    evaluate_all("models/")
     #evaluate_all("models/Peurifoy_4th/")
 
     ###########
