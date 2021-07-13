@@ -32,6 +32,7 @@ def read_flag():
     parser.add_argument('--dim-fc-encoder', default=DIM_FC_ENCODER, type=int, help='the dim of FC layer in encoder')
     parser.add_argument('--num-encoder-layer', default=NUM_ENCODER_LAYER, type=int, help='the number of encoder layers')
     parser.add_argument('--linear', default=LINEAR, type=list, help='the fully connected layers')
+    parser.add_argument('--sequence-length', default=SEQUENCE_LENGTH, type=int, help='the length of the geometry sequence')
     
     # Optimizer specific parameter
     parser.add_argument('--optim', default=OPTIM, type=str, help='the type of optimizer that you want to use')
