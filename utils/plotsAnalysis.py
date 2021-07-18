@@ -242,9 +242,9 @@ def HeatMapBVL(plot_x_name, plot_y_name, title,  save_name='HeatMap.png', HeatMa
                             df['linear_unit'] = eval(df['linear'][0])[1]
                         except:
                             try:
-                                df['linear_unit'] = eval(df['linear_b'][0])[1]
+                                df['linear_unit'] = eval(df['head_linear'][0])[1]
                             except:
-                                df['linear_unit'] = eval(df['linear_e'][0])[1]
+                                df['linear_unit'] = eval(df['tail_linear'][0])[1]
                         #df['best_validation_loss'] = get_bvl(file_path)
                     if feature_2_name == 'kernel_second':                       # If comparing different kernel convs
                         print(df['conv_kernel_size'])

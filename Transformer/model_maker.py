@@ -38,6 +38,9 @@ class Transformer(nn.Module):
         # Method #3: Use a small MLP to get to large dimension
         self.head_linears = nn.ModuleList([])
         self.head_bn_linears = nn.ModuleList([])
+        print('last dim of head linear', flags.head_linear[-1])
+        print('flags. feature channel num', flags.feature_channel_num)
+        print('sequence  length ', flags.sequence_length)
         assert flags.head_linear[-1] / flags.feature_channel_num == flags.sequence_length, 'In using MLP to get to larger dimension, the feature channel num should be divisible to the number of neurons in the last layer'
         for ind, fc_num in enumerate(flags.head_linear[0:-1]):               # Excluding the last one as we need intervals
             self.head_linears.append(nn.Linear(fc_num, flags.head_linear[ind + 1]))

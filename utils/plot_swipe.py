@@ -1,19 +1,7 @@
 import torch
 from utils import plotsAnalysis
 if __name__ == '__main__':
-    #pathnamelist = ['/home/sr365/MM_Bench/Tandem/models/Yang/sweep3/noconv/',
-    #               '/home/sr365/MM_Bench/Tandem/models/Yang/sweep3/conv_444_334_112/',
-    #                ]
-    pathnamelist = ['/home/sr365/MM_Bench/Tandem/models/Peurifoy_sweep']
-                #'/home/sr365/MM_Bench/NA/models/Peurifoy_big']
-                #'/home/sr365/MM_Bench/cINN/models/Peurifoy_rand/']
-                #
-                #'/home/sr365/MM_Bench/VAE/models/Peurifoy_4th']
-                #'/home/sr365/MM_Bench/VAE/models/Peurifoy_3rd']
-                
-                #'/home/sr365/MM_Bench/INN_FrEIA/models/Peurifoy']# #'/home/sr365/MM_Bench/MDN/models/Peurifoy']
-                    #'/home/sr365/MM_Bench/NA/models/Chen/sweep5/lr0.0001/reg0/']
-    #pathnamelist= ['/home/sr365/MM_Bench/NA/models/Yang_sim/conv_444_435_211/']
+    pathnamelist = ['/scratch/sr365/ML_MM_Benchmark/Transformer/models/lr_init_1e-2']
     for pathname in pathnamelist:
         
         # Forward: Convolutional swipe
@@ -22,8 +10,25 @@ if __name__ == '__main__':
         
         # General: Complexity swipe
         plotsAnalysis.HeatMapBVL('num_layers','num_unit','layer vs unit Heat Map',save_name=pathname + 'layer vs unit_heatmap.png',
-                                HeatMap_dir=pathname,feature_1_name='linear_b',feature_2_name='linear_unit')
+                                HeatMap_dir=pathname,feature_1_name='head_linear',feature_2_name='linear_unit')
+        # General: Complexity swipe
+        plotsAnalysis.HeatMapBVL('feature_ch_num','dim_fc_encoder','feature_ch_num vs dim_fc_encoder Heat Map',save_name=pathname + 'feature_ch_num vs dim_fc_encoder heatmap.png',
+                                HeatMap_dir=pathname,feature_1_name='feature_channel_num',feature_2_name='dim_fc_encoder')
         
+        # General: Complexity swipe
+        plotsAnalysis.HeatMapBVL('feature_ch_num','nhead_att','feature_ch_num vs nhead_att Heat Map',save_name=pathname + 'feature_ch_num vs nhead_att heatmap.png',
+                                HeatMap_dir=pathname,feature_1_name='feature_channel_num',feature_2_name='nhead_encoder')
+        
+        # General: Complexity swipe
+        plotsAnalysis.HeatMapBVL('feature_ch_num','head_linear','feature_ch_num vs head_linear Heat Map',save_name=pathname + 'feature_ch_num vs head_linear heatmap.png',
+                                HeatMap_dir=pathname,feature_1_name='feature_channel_num',feature_2_name='head_linear')
+        
+        # General: Complexity swipe
+        plotsAnalysis.HeatMapBVL('nhead_att','head_linear','nhead_att vs head_linear Heat Map',save_name=pathname + 'nhead_att vs head_linear heatmap.png',
+                                HeatMap_dir=pathname,feature_1_name='nhead_encoder',feature_2_name='head_linear')
+
+
+
         # General: lr vs layernum
         #plotsAnalysis.HeatMapBVL('num_layers','lr','layer vs unit Heat Map',save_name=pathname + 'layer vs lr_heatmap.png',
         #                         HeatMap_dir=pathname,feature_1_name='linear',feature_2_name='lr')

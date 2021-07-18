@@ -62,27 +62,27 @@ def hyperswipe():
     This is for doing hyperswiping for the model parameters
     """
     # reg_scale_list = [1e-4]
-    feature_channel_num_list = [8]
+    feature_channel_num_list = [128]
+    #feature_channel_num_list = [8, 64, 128, 512]
     nhead_encoder_list = [8]
-    #feature_channel_num_list = [32, 128]
     #nhead_encoder_list = [4, 8]
     dim_fc_encoder_list = [32, 128]
-    fc_layer_num_list = range(6)
+    head_fc_layer_num_list = range(6)
     layer_node_num_list = [200, 500]
     for feature_channel_num in feature_channel_num_list:
         for nhead_encoder in nhead_encoder_list:
             for dim_fc_encoder in dim_fc_encoder_list:
-                for fc_layer_num in fc_layer_num_list:
+                for head_fc_layer_num in head_fc_layer_num_list:
                     for layer_node_num in layer_node_num_list:
                         flags = flag_reader.read_flag()  	#setting the base case
                         flags.feature_channel_num = feature_channel_num
                         flags.nhead_encoder = nhead_encoder
-                        flags.dim_fc_encoder_list = dim_fc_encoder_list
-                        flags.linear = [layer_node_num for i in range(fc_layer_num)] + [flags.dim_S]
-                        print('linear layer here is ', flags.linear)
+                        flags.dim_fc_encoder = dim_fc_encoder_list
+                        flags.head_linear = [flags.dim_G] + [layer_node_num for i in range(head_fc_layer_num)] + [flags.sequence_length * flags.feature_channel_num]
+                        print('linear layer here is ', flags.head_linear)
                         flags.model_name = flags.data_set + '_feature_channel_' + str(feature_channel_num) + \
-                                            '_natthead_' + str(nhead_encoder) + '_dim_fc_' + str(dim_fc_encoder) +\
-                                            '_num_layer_' + str(fc_layer_num) + '_node_' + str(layer_node_num)
+                                            '_natthead_' + str(nhead_encoder) + '_encoder_dim_fc_' + str(dim_fc_encoder) +\
+                                            '_head_num_layer_' + str(head_fc_layer_num) + '_head_node_' + str(layer_node_num)
                         training_from_flag(flags)
 
 if __name__ == '__main__':
@@ -91,9 +91,9 @@ if __name__ == '__main__':
     # Read the parameters to be set
     flags = flag_reader.read_flag()
 
-    #hyperswipe()
+    hyperswipe()
     # Call the train from flag function
-    training_from_flag(flags)
+    #training_from_flag(flags)
 
     # Do the retraining for all the data set to get the training 
     #for i in range(10):

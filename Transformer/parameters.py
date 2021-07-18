@@ -36,7 +36,7 @@ EVAL_BATCH_SIZE = 1024
 EVAL_STEP = 20
 TRAIN_STEP = 300
 VERB_STEP = 20
-LEARN_RATE = 1e-2
+LEARN_RATE = 1e-3
 LR_DECAY_RATE = 0.9
 STOP_THRESHOLD = -1 # -1 means dont stop
 
@@ -49,7 +49,8 @@ X_RANGE = [i for i in range(2, 16 )]
 Y_RANGE = [i for i in range(16 , 2017 )]                         # Artificial Meta-material dataset
 FORCE_RUN = True
 MODEL_NAME = None 
-DATA_DIR = '/home/sr365/MM_Bench/Data/'                                               # All simulated simple dataset
+DATA_DIR = '/scratch/sr365/ML_MM_Benchmark/Data/'               # Vahid machine
+#DATA_DIR = '/home/sr365/MM_Bench/Data/'                                               # All simulated simple dataset
 GEOBOUNDARY =[0.3, 0.6, 1, 1.5, 0.1, 0.2, -0.786, 0.786]
 NORMALIZE_INPUT = True
 
