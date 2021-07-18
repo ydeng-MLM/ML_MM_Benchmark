@@ -62,7 +62,7 @@ def hyperswipe():
     This is for doing hyperswiping for the model parameters
     """
     # reg_scale_list = [1e-4]
-    feature_channel_num_list = [128]
+    feature_channel_num_list = [8]
     nhead_encoder_list = [8]
     #feature_channel_num_list = [32, 128]
     #nhead_encoder_list = [4, 8]
@@ -91,9 +91,9 @@ if __name__ == '__main__':
     # Read the parameters to be set
     flags = flag_reader.read_flag()
 
-    hyperswipe()
+    #hyperswipe()
     # Call the train from flag function
-    #training_from_flag(flags)
+    training_from_flag(flags)
 
     # Do the retraining for all the data set to get the training 
     #for i in range(10):
