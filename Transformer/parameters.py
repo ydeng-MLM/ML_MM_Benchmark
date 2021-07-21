@@ -3,7 +3,9 @@ Hyper-parameters of the Tandem model
 """
 # Define which data set you are using
 
-#DATA_SET = 'Chen'
+DATA_SET = 'Color'
+DIM_G = 3
+DIM_S = 3
 
 #DATA_SET = 'Yang'
 # DIM_G = 14

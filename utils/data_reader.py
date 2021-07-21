@@ -187,6 +187,27 @@ def normalize_np(x):
         assert np.min(x[:, i]) + 1 < 0.0001, 'your normalization is wrong'
     return x
 
+def read_data_color_filter(flags, eval_data_all=False):
+    """
+    Data reader function for the gaussian mixture data set
+    :param flags: Input flags
+    :return: train_loader and test_loader in pytorch data set format (normalized)
+    """
+
+    # Read the data
+    data_dir = os.path.join(flags.data_dir, 'Color_filter')
+    data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None).astype('float32').values
+    data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None).astype('float32').values
+    data_x = normalize_np(data_x)
+
+    print("shape of data_x", np.shape(data_x))
+    print("shape of data_y", np.shape(data_y))
+    if eval_data_all:
+        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
+
+    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=flags.test_ratio)
+
+
 def read_data_peurifoy(flags, eval_data_all=False):
     """
     Data reader function for the gaussian mixture data set
@@ -267,6 +288,8 @@ def read_data(flags, eval_data_all=False):
         train_loader, test_loader = read_data_peurifoy(flags,eval_data_all=eval_data_all)
     elif flags.data_set == 'Yang_sim':
         train_loader, test_loader =read_data_Yang_sim(flags,eval_data_all=eval_data_all)
+    elif flags.data_set == 'Color':
+        train_loader, test_loader =read_data_color_filter(flags,eval_data_all=eval_data_all)
     else:
         sys.exit("Your flags.data_set entry is not correct, check again!")
     return train_loader, test_loader

@@ -1,5 +1,7 @@
 # The files to ignore in a git commit
 
+*temp
+
 # The huge data folder
 Data/
 

@@ -111,10 +111,10 @@ if __name__ == '__main__':
     # Read the parameters to be set
     flags = flag_reader.read_flag()
 
-    hyperswipe()
+    #hyperswipe()
     #hyperswipe_lr_decay()
     # Call the train from flag function
-    #training_from_flag(flags)
+    training_from_flag(flags)
 
     # Do the retraining for all the data set to get the training 
     #for i in range(10):
