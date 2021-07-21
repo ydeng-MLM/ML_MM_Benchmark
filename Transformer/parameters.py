@@ -26,7 +26,7 @@ NUM_ENCODER_LAYER = 6       # Number of encoder layers for the whole Transformer
 SEQUENCE_LENGTH = 8         # This is number has to be divisible 
 # TAIL_LINEAR = [500, 500, 500, DIM_S]
 TAIL_LINEAR = []
-HEAD_LINEAR = [DIM_G, 128, 128, 128, SEQUENCE_LENGTH*FEATURE_CHANNEL_NUM]
+HEAD_LINEAR = [DIM_G, 200, 200, 200, 200, 200, 200, SEQUENCE_LENGTH*FEATURE_CHANNEL_NUM]
 
 # Optimizer parameters
 OPTIM = "Adam"
@@ -36,8 +36,8 @@ EVAL_BATCH_SIZE = 1024
 EVAL_STEP = 20
 TRAIN_STEP = 300
 VERB_STEP = 20
-LEARN_RATE = 1e-3
-LR_DECAY_RATE = 0.9
+LEARN_RATE = 2e-4
+LR_DECAY_RATE = 0.2
 STOP_THRESHOLD = -1 # -1 means dont stop
 
 # Running specific parameter

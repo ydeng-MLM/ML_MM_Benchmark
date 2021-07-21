@@ -293,7 +293,8 @@ def HeatMapBVL(plot_x_name, plot_y_name, title,  save_name='HeatMap.png', HeatMa
     
     print('type of last number of df_aggregate is', type(df_aggregate.iloc[-1, -1]))
     ########################################################################################################
-    df_aggregate.iloc[:, df.columns != heat_value_name] = df_aggregate.iloc[:, df.columns != heat_value_name].round(decimals=3)        
+    # Round to 3 decimal places
+    #df_aggregate.iloc[:, df.columns != heat_value_name] = df_aggregate.iloc[:, df.columns != heat_value_name].round(decimals=3)        
     ########################################################################################################
     print("after transoformation:",df_aggregate)
     
