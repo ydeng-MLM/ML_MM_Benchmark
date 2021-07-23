@@ -15,7 +15,7 @@ DATA_SET = 'Peurifoy'
 DIM_G = 8
 DIM_S = 201
 
-TEST_RATIO = 0.05
+TEST_RATIO = 0.2
 
 # Model Architecture parameters
 LOAD_FORWARD_CKPT_DIR = None
@@ -33,9 +33,8 @@ HEAD_LINEAR = [DIM_G, 500, 500, 500, 500, 500, 500, 500, SEQUENCE_LENGTH*FEATURE
 # Optimizer parameters
 OPTIM = "Adam"
 REG_SCALE = 5e-4 
-BATCH_SIZE = 512
-EVAL_BATCH_SIZE = 1024
-EVAL_STEP = 20
+BATCH_SIZE = 1024
+EVAL_STEP = 50
 TRAIN_STEP = 300
 VERB_STEP = 20
 LEARN_RATE = 2e-4
@@ -47,16 +46,10 @@ STOP_THRESHOLD = -1 # -1 means dont stop
 
 # Running specific parameter
 USE_CPU_ONLY = False
-DETAIL_TRAIN_LOSS_FORWARD = True
 
-# Data-specific parameters# Data specific Params
-X_RANGE = [i for i in range(2, 16 )]
-Y_RANGE = [i for i in range(16 , 2017 )]                         # Artificial Meta-material dataset
 FORCE_RUN = True
 MODEL_NAME = None 
 DATA_DIR = '/scratch/sr365/ML_MM_Benchmark/Data/'               # Vahid machine
-#DATA_DIR = '/home/sr365/MM_Bench/Data/'                                               # All simulated simple dataset
-GEOBOUNDARY =[0.3, 0.6, 1, 1.5, 0.1, 0.2, -0.786, 0.786]
 NORMALIZE_INPUT = True
 
 EVAL_MODEL = None

@@ -142,10 +142,11 @@ class Network(object):
                 loss = self.make_loss(logit=S_pred, labels=spectra)
                 loss.backward()                                     # Calculate the backward gradients
                 self.optm.step()                                    # Move one step the optimizer
-                train_loss += loss                                  # Aggregate the loss
+                train_loss += loss.cpu().data.numpy()                                  # Aggregate the loss
+                del S_pred, loss
 
             # Calculate the avg loss of training
-            train_avg_loss = train_loss.cpu().data.numpy() / (j + 1)
+            train_avg_loss = train_loss / (j + 1)
 
             if epoch % self.flags.eval_step == 0:                      # For eval steps, do the evaluations and tensor board
                 # Record the training loss to the tensorboard
@@ -159,12 +160,28 @@ class Network(object):
                     if cuda:
                         geometry = geometry.cuda()
                         spectra = spectra.cuda()
+                    ################ Debugging the memory cuda #################
+                    #print('in epoch {} test batch {}, lenghth is :'.format(epoch, j))
+                    #print('getting memory information')
+                    #t = torch.cuda.get_device_properties(0).total_memory/1e9
+                    #r = torch.cuda.memory_reserved(0)/1e9
+                    #a = torch.cuda.memory_allocated(0)/1e9
+                    #print('total memory {}G, reserved memory {}G, allocated memory {}G'.format(t, r,a))
+                    ################ Debugging the memory cuda #################
+
                     S_pred = self.model(geometry)
                     loss = self.make_loss(logit=S_pred, labels=spectra)
-                    test_loss += loss                                       # Aggregate the loss
+                    print(loss.cpu().data.numpy())
+                    test_loss += loss.cpu().data.numpy()                                       # Aggregate the loss
+                    del loss, S_pred
+                    ################ Debugging the memory cuda #################
+                    #r = torch.cuda.memory_reserved(0)/1e9
+                    #a = torch.cuda.memory_allocated(0)/1e9
+                    #print('after delete, reserved memory {}G, allocated memory {}G'.format(r,a))
+                    ################ Debugging the memory cuda #################
 
                 # Record the testing loss to the tensorboard
-                test_avg_loss = test_loss.cpu().data.numpy() / (j+1)
+                test_avg_loss = test_loss/ (j+1)
                 self.log.add_scalar('Loss/total_test', test_avg_loss, epoch)
 
                 print("This is Epoch %d, training loss %.5f, validation loss %.5f" \
