@@ -90,7 +90,10 @@ class Network(object):
         1. ReduceLROnPlateau (decrease lr when validation error stops improving
         :return:
         """
-        return lr_scheduler.ReduceLROnPlateau(optimizer=optm, mode='min',
+        if self.flags.lr_scheduler == 'warm_restart':
+            return lr_scheduler.CosineAnnealingWarmRestarts(optm, self.flags.warm_restart_T_0, T_mult=1, eta_min=0, last_epoch=-1, verbose=False) 
+        elif self.flags.lr_scheduler == 'reduce_plateau':
+            return lr_scheduler.ReduceLROnPlateau(optimizer=optm, mode='min',
                                               factor=self.flags.lr_decay_rate,
                                               patience=10, verbose=True, threshold=1e-4)
 

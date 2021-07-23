@@ -143,7 +143,7 @@ def read_data_meta_material( x_range, y_range, geoboundary,  batch_size=128,
     return train_loader, test_loader
 
 
-def get_data_into_loaders(data_x, data_y, batch_size, DataSetClass, rand_seed=1, test_ratio=0.05):
+def get_data_into_loaders(data_x, data_y, batch_size, DataSetClass, rand_seed=42, test_ratio=0.3):
     """
     Helper function that takes structured data_x and data_y into dataloaders
     :param data_x: the structured x data

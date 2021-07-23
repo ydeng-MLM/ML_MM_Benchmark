@@ -1,7 +1,7 @@
 import torch
 from utils import plotsAnalysis
 if __name__ == '__main__':
-    pathnamelist = ['/scratch/sr365/ML_MM_Benchmark/Transformer/models/lr_sweep']
+    pathnamelist = ['/scratch/sr365/ML_MM_Benchmark/Transformer/models/sweep2']
     for pathname in pathnamelist:
         
         # Forward: Convolutional swipe
@@ -9,29 +9,29 @@ if __name__ == '__main__':
         #                        HeatMap_dir='models/'+pathname,feature_1_name='kernel_first',feature_2_name='kernel_second')
         
         # General: Complexity swipe
-        #plotsAnalysis.HeatMapBVL('num_layers','num_unit','layer vs unit Heat Map',save_name=pathname + 'layer vs unit_heatmap.png',
-        #                        HeatMap_dir=pathname,feature_1_name='head_linear',feature_2_name='linear_unit')
+        plotsAnalysis.HeatMapBVL('num_layers','num_unit','layer vs unit Heat Map',save_name=pathname + 'layer vs unit_heatmap.png',
+                                HeatMap_dir=pathname,feature_1_name='head_linear',feature_2_name='linear_unit')
         # General: Complexity swipe
-        #plotsAnalysis.HeatMapBVL('feature_ch_num','dim_fc_encoder','feature_ch_num vs dim_fc_encoder Heat Map',save_name=pathname + 'feature_ch_num vs dim_fc_encoder heatmap.png',
-        #                        HeatMap_dir=pathname,feature_1_name='feature_channel_num',feature_2_name='dim_fc_encoder')
+        plotsAnalysis.HeatMapBVL('feature_ch_num','dim_fc_encoder','feature_ch_num vs dim_fc_encoder Heat Map',save_name=pathname + 'feature_ch_num vs dim_fc_encoder heatmap.png',
+                                HeatMap_dir=pathname,feature_1_name='feature_channel_num',feature_2_name='dim_fc_encoder')
         
         # General: Complexity swipe
-        #plotsAnalysis.HeatMapBVL('feature_ch_num','nhead_att','feature_ch_num vs nhead_att Heat Map',save_name=pathname + 'feature_ch_num vs nhead_att heatmap.png',
-        #                        HeatMap_dir=pathname,feature_1_name='feature_channel_num',feature_2_name='nhead_encoder')
+        plotsAnalysis.HeatMapBVL('feature_ch_num','nhead_att','feature_ch_num vs nhead_att Heat Map',save_name=pathname + 'feature_ch_num vs nhead_att heatmap.png',
+                                HeatMap_dir=pathname,feature_1_name='feature_channel_num',feature_2_name='nhead_encoder')
         
         # General: Complexity swipe
-        #plotsAnalysis.HeatMapBVL('feature_ch_num','head_linear','feature_ch_num vs head_linear Heat Map',save_name=pathname + 'feature_ch_num vs head_linear heatmap.png',
-        #                        HeatMap_dir=pathname,feature_1_name='feature_channel_num',feature_2_name='head_linear')
+        plotsAnalysis.HeatMapBVL('feature_ch_num','head_linear','feature_ch_num vs head_linear Heat Map',save_name=pathname + 'feature_ch_num vs head_linear heatmap.png',
+                                HeatMap_dir=pathname,feature_1_name='feature_channel_num',feature_2_name='head_linear')
         
         # General: Complexity swipe
-        #plotsAnalysis.HeatMapBVL('nhead_att','head_linear','nhead_att vs head_linear Heat Map',save_name=pathname + 'nhead_att vs head_linear heatmap.png',
-        #                        HeatMap_dir=pathname,feature_1_name='nhead_encoder',feature_2_name='head_linear')
+        plotsAnalysis.HeatMapBVL('nhead_att','head_linear','nhead_att vs head_linear Heat Map',save_name=pathname + 'nhead_att vs head_linear heatmap.png',
+                                HeatMap_dir=pathname,feature_1_name='nhead_encoder',feature_2_name='head_linear')
 
 
 
         # General: lr vs layernum
-        plotsAnalysis.HeatMapBVL('lr','lr_decay','layer vs unit Heat Map',save_name=pathname + 'lr_decay vs lr_heatmap.png',
-                                 HeatMap_dir=pathname,feature_1_name='lr',feature_2_name='lr_decay_rate')
+        #plotsAnalysis.HeatMapBVL('lr','lr_decay','layer vs unit Heat Map',save_name=pathname + 'lr_decay vs lr_heatmap.png',
+        #                         HeatMap_dir=pathname,feature_1_name='lr',feature_2_name='lr_decay_rate')
 
         # MDN: num layer and num_gaussian
         # plotsAnalysis.HeatMapBVL('num_layers','num_gaussian','layer vs num_gaussian Heat Map',save_name=pathname + 'layer vs num_gaussian heatmap.png',

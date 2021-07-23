@@ -46,6 +46,9 @@ def read_flag():
     parser.add_argument('--train-step', default=TRAIN_STEP, type=int, help='# steps to train on the dataSet')
     parser.add_argument('--verb-step', default=VERB_STEP, type=int, help='# steps to print and check best performance')
     parser.add_argument('--lr', default=LEARN_RATE, type=float, help='learning rate')
+    parser.add_argument('--lr-scheduler', default=LR_SCHEDULER, type=str, help='learning rate scheduler, there are two choices available, either reducePlateau or warm_restart')
+    parser.add_argument('--warm-restart-T-0', default=WARM_RESTART_T_0, type=int,
+                        help='the starting epoch of warm restart')
     parser.add_argument('--lr-decay-rate', default=LR_DECAY_RATE, type=float,
                         help='decay learn rate by multiplying this factor')
     parser.add_argument('--stop_threshold', default=STOP_THRESHOLD, type=float,

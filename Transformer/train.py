@@ -62,7 +62,7 @@ def hyperswipe():
     This is for doing hyperswiping for the model parameters
     """
     # reg_scale_list = [1e-4]
-    feature_channel_num_list = [512]
+    feature_channel_num_list = [8]
     #feature_channel_num_list = [8, 64, 128, 512]
     nhead_encoder_list = [4, 8]
     #nhead_encoder_list = [4, 8]
@@ -93,9 +93,9 @@ def hyperswipe_lr_decay():
     """
     sweep over the learning rate related parameters
     """
-    lr_list = [5e-5, 1e-5]
-    #lr_list = [1e-2, 1e-3, 5e-3, 1e-4, 5e-4, 2e-4, 5e-5, 1e-5]
-    decay_list = [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
+    #lr_list = [5e-5, 1e-5]
+    lr_list = [1e-3, 1e-4, 5e-4, 5e-5, 1e-5]
+    decay_list = [0.9, 0.5, 0.3, 0.1]
     trail = 0
     for lr in lr_list:
         for decay in decay_list:
@@ -111,10 +111,10 @@ if __name__ == '__main__':
     # Read the parameters to be set
     flags = flag_reader.read_flag()
 
-    #hyperswipe()
-    #hyperswipe_lr_decay()
+    # hyperswipe()
+    hyperswipe_lr_decay()
     # Call the train from flag function
-    training_from_flag(flags)
+    #training_from_flag(flags)
 
     # Do the retraining for all the data set to get the training 
     #for i in range(10):
