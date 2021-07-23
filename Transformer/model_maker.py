@@ -33,7 +33,7 @@ class Transformer(nn.Module):
         # Method #2: The slicing method  (A sequence length of 1 means this method is not activated)
         if not flags.head_linear:       # If we are not using the method 3 MLP, this assertion should hold
             assert  (flags.dim_G % flags.sequence_length == 0), 'Assertion error, your dim_G  should be divisible by the flags.sequence_length'
-        self.sequence_fc_layer = nn.Linear(int(flags.dim_G / flags.sequence_length) , flags.feature_channel_num)
+            self.sequence_fc_layer = nn.Linear(int(flags.dim_G / flags.sequence_length) , flags.feature_channel_num)
         
         # Method #3: Use a small MLP to get to large dimension
         self.head_linears = nn.ModuleList([])

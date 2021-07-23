@@ -11,7 +11,6 @@ from torch import nn
 from torch.utils.tensorboard import SummaryWriter
 # from torchsummary import summary
 from torch.optim import lr_scheduler
-from utils.helper_functions import simulator
 # Libs
 import numpy as np
 from math import inf
@@ -262,8 +261,5 @@ class Network(object):
         with open(Ytruth_file, 'a') as fyt, open(Ypred_file, 'a') as fyp, open(Xpred_file, 'a') as fxp:
             np.savetxt(fyt, Ytruth_tensor.cpu().data.numpy())
             np.savetxt(fxp, Xpred)
-            if self.flags.data_set != 'Yang_sim':
-                Ypred = simulator(self.flags.data_set, Xpred)
-                np.savetxt(fyp, Ypred)
         tk.record(1)
         return Ypred_file, Ytruth_file

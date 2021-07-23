@@ -3,8 +3,6 @@ This is the helper functions for various functions
 1-4: retrieving the prediction or truth files in data/
 5: Put flags.obj and parameters.txt into the folder
 6-8: Functions handling flags
-9-12: Simulator functions
-13: Meta-simulator function
 14: Normalize at eval mode (get back the original range)
 """
 import os
@@ -13,7 +11,6 @@ from copy import deepcopy
 import sys
 import pickle
 import numpy as np
-from Data.Peurifoy.generate_Peurifoy import simulate as peur_sim
 # from ensemble_mm.predict_ensemble import ensemble_predict_master
 # 1
 def get_Xpred(path, name=None):
@@ -190,31 +187,7 @@ def write_flags_and_BVE(flags, best_validation_loss, save_dir, forward_best_loss
 
 
 
-    
-# 15
-def simulator(data_set, Xpred):
-    """
-    This is the simulator which takes Xpred from inference models and feed them into real data
-    simulator to get Ypred
-    :param data_set: str, the name of the data set
-    :param Xpred: (N, dim_x), the numpy array of the Xpred got from the inference model
-    :return: Ypred from the simulator
-    """
-
-    if data_set == 'Peurifoy':
-        # The geometric boundary of peurifoy dataset is [30, 70], normalizing manually
-        Xpred = Xpred * 20. + 50
-        Ypred = []
-        for i in range(len(Xpred)):
-            spec = peur_sim(Xpred[i, :])
-            Ypred.append(spec)
-        return np.array(Ypred)
-    elif data_set == 'Yang':
-        sys.exit("You are using Yang dataset, there is no simulator built-in for Yang! Please use neural simulator")
-    else:
-        sys.exit("In Simulator: Your data_set entry is not correct, check again!")
-
-
+   
 # 16
 def normalize_eval(x, x_max, x_min):
     """
