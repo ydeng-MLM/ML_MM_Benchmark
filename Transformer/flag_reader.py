@@ -41,7 +41,6 @@ def read_flag():
     parser.add_argument('--batch-size', default=BATCH_SIZE, type=int, help='batch size (100)')
     parser.add_argument('--eval-step', default=EVAL_STEP, type=int, help='# steps between evaluations')
     parser.add_argument('--train-step', default=TRAIN_STEP, type=int, help='# steps to train on the dataSet')
-    parser.add_argument('--verb-step', default=VERB_STEP, type=int, help='# steps to print and check best performance')
     parser.add_argument('--lr', default=LEARN_RATE, type=float, help='learning rate')
     parser.add_argument('--lr-scheduler', default=LR_SCHEDULER, type=str, help='learning rate scheduler, there are two choices available, either reducePlateau or warm_restart')
     parser.add_argument('--warm-restart-T-0', default=WARM_RESTART_T_0, type=int,

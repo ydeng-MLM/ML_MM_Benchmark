@@ -327,7 +327,7 @@ def HeatMapBVL(plot_x_name, plot_y_name, title,  save_name='HeatMap.png', HeatMa
     else: #Or this is a 2 dimension HeatMap
         print("plotting 2 dimension HeatMap")
         #point_df = pd.DataFrame.from_records([point.to_dict() for point in HMpoint_list])
-        df_aggregate = df_aggregate.round(decimals=3)
+        df_aggregate = df_aggregate.round(decimals=5)
         df_aggregate = df_aggregate.reset_index()
         df_aggregate.sort_values(feature_1_name, axis=0, inplace=True)
         df_aggregate.sort_values(feature_2_name, axis=0, inplace=True)

@@ -61,7 +61,7 @@ def read_data_color_filter(flags, eval_data_all=False):
     """
 
     # Read the data
-    data_dir = os.path.join(flags.data_dir, 'Color_filter')
+    data_dir = os.path.join(flags.data_dir, 'Color')
     data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None).astype('float32').values
     data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None).astype('float32').values
     data_x = normalize_np(data_x)
@@ -155,8 +155,6 @@ def read_data(flags, eval_data_all=False):
         train_loader, test_loader = read_data_Yang(flags,eval_data_all=eval_data_all)
     elif flags.data_set == 'Peurifoy':
         train_loader, test_loader = read_data_peurifoy(flags,eval_data_all=eval_data_all)
-    elif flags.data_set == 'Yang_sim':
-        train_loader, test_loader =read_data_Yang_sim(flags,eval_data_all=eval_data_all)
     elif flags.data_set == 'Color':
         train_loader, test_loader =read_data_color_filter(flags,eval_data_all=eval_data_all)
     else:

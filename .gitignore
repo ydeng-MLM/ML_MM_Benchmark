@@ -3,6 +3,7 @@
 *temp
 
 # The huge data folder
+*Data
 Data/
 
 # The model files trained
