@@ -4,8 +4,8 @@ import pandas as pd
 
 # Thif cuntion calculates the total training time of a folder and outputs a number with hours
 
-#folder = '/scratch/sr365/ML_MM_Benchmark/Yang_temp/models/sweep3'
-folder = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/sweep4'
+folder = '/scratch/sr365/ML_MM_Benchmark/Yang_temp/models/sweep4'
+#folder = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/sweep4'
 #folder = '/scratch/sr365/ML_MM_Benchmark/Color_temp/models/sweep3'
 
 if __name__ == '__main__':

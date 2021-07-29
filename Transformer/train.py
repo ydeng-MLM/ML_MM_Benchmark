@@ -89,7 +89,7 @@ def hyperswipe():
                                         flags.num_encoder_layer = num_encoder_layer
                                         flags.sequence_length = sequence_length
                                         flags.head_linear = [flags.dim_G] + [head_layer_node_num for i in range(head_fc_layer_num)] + [flags.sequence_length * flags.feature_channel_num]
-                                        flags.tail_linear = [tail_layer_node_num for i in range(head_fc_layer_num)] + [flags.dim_S]
+                                        flags.tail_linear = [tail_layer_node_num for i in range(tail_fc_layer_num)] + [flags.dim_S]
                                         print('feature_channel_num', flags.feature_channel_num)
                                         print('nhead', flags.nhead_encoder)
                                         print('dim_fc_encoder', flags.dim_fc_encoder)
