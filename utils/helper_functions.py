@@ -13,7 +13,7 @@ from copy import deepcopy
 import sys
 import pickle
 import numpy as np
-from Data.Peurifoy.generate_Peurifoy import simulate as peur_sim
+# from Data.Peurifoy.generate_Peurifoy import simulate as peur_sim
 # from ensemble_mm.predict_ensemble import ensemble_predict_master
 # 1
 def get_Xpred(path, name=None):

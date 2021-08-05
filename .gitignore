@@ -2,6 +2,8 @@
 
 # The huge data folder
 Data/
+datasets/
+utils/
 
 # The model files trained
 */models

@@ -293,7 +293,7 @@ def HeatMapBVL(plot_x_name, plot_y_name, title,  save_name='HeatMap.png', HeatMa
     
     print('type of last number of df_aggregate is', type(df_aggregate.iloc[-1, -1]))
     ########################################################################################################
-    df_aggregate.iloc[:, df.columns != heat_value_name] = df_aggregate.iloc[:, df.columns != heat_value_name].round(decimals=3)        
+    #df_aggregate.iloc[:, df.columns != heat_value_name] = df_aggregate.iloc[:, df.columns != heat_value_name].round(decimals=3)        
     ########################################################################################################
     print("after transoformation:",df_aggregate)
     
@@ -326,7 +326,7 @@ def HeatMapBVL(plot_x_name, plot_y_name, title,  save_name='HeatMap.png', HeatMa
     else: #Or this is a 2 dimension HeatMap
         print("plotting 2 dimension HeatMap")
         #point_df = pd.DataFrame.from_records([point.to_dict() for point in HMpoint_list])
-        df_aggregate = df_aggregate.round(decimals=3)
+        df_aggregate = df_aggregate.round(decimals=5)
         df_aggregate = df_aggregate.reset_index()
         df_aggregate.sort_values(feature_1_name, axis=0, inplace=True)
         df_aggregate.sort_values(feature_2_name, axis=0, inplace=True)
@@ -339,9 +339,9 @@ def HeatMapBVL(plot_x_name, plot_y_name, title,  save_name='HeatMap.png', HeatMa
         point_df_pivot = point_df_pivot.reindex(sorted(point_df_pivot.columns), axis=1)
         print("pivot=")
         csvname = HeatMap_dir + 'pivoted.csv'
-        point_df_pivot.to_csv(csvname, float_format="%.3g")
+        point_df_pivot.to_csv(csvname, float_format="%.5f")
         print(point_df_pivot)
-        sns.heatmap(point_df_pivot, cmap = "YlGnBu")
+        sns.heatmap(point_df_pivot, cmap = "YlGnBu", annot=True, fmt='.5f')
     plt.xlabel(plot_y_name)                 # Note that the pivot gives reversing labels
     plt.ylabel(plot_x_name)                 # Note that the pivot gives reversing labels
     plt.title(title)
