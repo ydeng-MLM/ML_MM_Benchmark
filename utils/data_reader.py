@@ -187,60 +187,20 @@ def normalize_np(x):
         assert np.min(x[:, i]) + 1 < 0.0001, 'your normalization is wrong'
     return x
 
-def read_data_ADM(flags, eval_data_all=False):
-    if flags.test_ratio == 0:
-        # Read the data
-        data_dir = os.path.join(flags.data_dir, 'ADM_60k', 'eval')
-        test_x = pd.read_csv(os.path.join(data_dir, 'test_x.csv'), header=None).astype('float32').values
-        test_y = pd.read_csv(os.path.join(data_dir, 'test_y.csv'), header=None).astype('float32').values
-        test_x = normalize_np(test_x)
-        print("shape of test_x", np.shape(test_x))
-        print("shape of test_y", np.shape(test_y))
-
-        return get_data_into_loaders(test_x, test_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
-
-    # Read the data
-    data_dir = os.path.join(flags.data_dir, 'ADM_60k')
-    data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None).astype('float32').values
-    data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None).astype('float32').values
-
-    # The geometric boundary of peurifoy dataset is [30, 70], normalizing manually
-    data_x = normalize_np(data_x)
-    print("shape of data_x", np.shape(data_x))
-    print("shape of data_y", np.shape(data_y))
-
-    if eval_data_all:
-        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
-
-    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=flags.test_ratio)
-
-
-
 def read_data_peurifoy(flags, eval_data_all=False):
     """
     Data reader function for the gaussian mixture data set
     :param flags: Input flags
     :return: train_loader and test_loader in pytorch data set format (normalized)
     """
-    
-    if flags.test_ratio == 0:
-        # Read the data
-        data_dir = os.path.join(flags.data_dir, 'Peurifoy', 'eval')
-        test_x = pd.read_csv(os.path.join(data_dir, 'test_x.csv'), header=None).astype('float32').values
-        test_y = pd.read_csv(os.path.join(data_dir, 'test_y.csv'), header=None).astype('float32').values
-        test_x = normalize_np(test_x)
-        print("shape of test_x", np.shape(test_x))
-        print("shape of test_y", np.shape(test_y))
-
-        return get_data_into_loaders(test_x, test_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
-
 
     # Read the data
     data_dir = os.path.join(flags.data_dir, 'Peurifoy')
     data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None).astype('float32').values
     data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None).astype('float32').values
 
-    data_x = (data_x-50)/20.
+    # The geometric boundary of peurifoy dataset is [30, 70], normalizing manually
+    data_x = (data_x - 50) / 20.
 
     print("shape of data_x", np.shape(data_x))
     print("shape of data_y", np.shape(data_y))
@@ -248,31 +208,6 @@ def read_data_peurifoy(flags, eval_data_all=False):
         return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
 
     return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=flags.test_ratio)
-
-def read_data_color(flags, eval_data_all=False):
-    if flags.test_ratio == 0:
-        # Read the data
-        data_dir = os.path.join(flags.data_dir, 'color', 'eval')
-        test_x = pd.read_csv(os.path.join(data_dir, 'test_x.csv'), header=None).astype('float32').values
-        test_y = pd.read_csv(os.path.join(data_dir, 'test_y.csv'), header=None).astype('float32').values
-        test_x = normalize_np(test_x)
-        print("shape of test_x", np.shape(test_x))
-        print("shape of test_y", np.shape(test_y))
-
-    # Read the data
-    data_dir = os.path.join(flags.data_dir, 'color')
-    data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None).astype('float32').values
-    data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None).astype('float32').values
-
-    # The geometric boundary of peurifoy dataset is [30, 70], normalizing manually
-    #data_x = normalize_np(data_x)
-    print("shape of data_x", np.shape(data_x))
-    print("shape of data_y", np.shape(data_y))
-    if eval_data_all:
-        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
-
-    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed = flags.rand_seed, test_ratio=flags.test_ratio)
-
 
 def read_data_Yang_sim(flags, eval_data_all=False):
     """
@@ -328,12 +263,8 @@ def read_data(flags, eval_data_all=False):
         # Reset the boundary is normalized
         if flags.normalize_input:
             flags.geoboundary_norm = [-1, 1, -1, 1]
-    elif flags.data_set == 'ADM':
-        train_loader, test_loader = read_data_ADM(flags, eval_data_all=eval_data_all)
     elif flags.data_set == 'Peurifoy':
         train_loader, test_loader = read_data_peurifoy(flags,eval_data_all=eval_data_all)
-    elif flags.data_set == 'color':
-        train_loader, test_loader = read_data_color(flags, eval_data_all=eval_data_all)
     elif flags.data_set == 'Yang_sim':
         train_loader, test_loader =read_data_Yang_sim(flags,eval_data_all=eval_data_all)
     else:
