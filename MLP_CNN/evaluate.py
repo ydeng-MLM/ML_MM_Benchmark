@@ -3,7 +3,9 @@ This file serves as a evaluation interface for the network
 """
 # Built in
 import os
-# Torch
+import sys
+sys.path.insert(0, '/scratch/yd105/ML_MM_Benchmark')
+#Torch
 
 # Own
 import flag_reader
@@ -31,7 +33,7 @@ def evaluate_from_model(model_dir):
     flags.eval_model = model_dir                    # Reset the eval mode
     #flags.x_range = [i for i in range(0, 14)]
     #flags.y_range = [i for i in range(14, 2014)]
-    #flags.test_ratio = 0
+    flags.test_ratio = 0
 
 
     # Get the data
