@@ -38,14 +38,13 @@ def read_flag():
     # Optimizer specific parameter
     parser.add_argument('--optim', default=OPTIM, type=str, help='the type of optimizer that you want to use')
     parser.add_argument('--reg-scale', type=float, default=REG_SCALE, help='#scale for regularization of dense layers')
-    parser.add_argument('--x-range', type=list, default=X_RANGE, help='columns of input parameters')
-    parser.add_argument('--y-range', type=list, default=Y_RANGE, help='columns of output parameters')
     parser.add_argument('--batch-size', default=BATCH_SIZE, type=int, help='batch size (100)')
-    parser.add_argument('--eval-batch-size', default=EVAL_BATCH_SIZE, type=int, help='The Batch size for back propagation')
     parser.add_argument('--eval-step', default=EVAL_STEP, type=int, help='# steps between evaluations')
     parser.add_argument('--train-step', default=TRAIN_STEP, type=int, help='# steps to train on the dataSet')
-    parser.add_argument('--verb-step', default=VERB_STEP, type=int, help='# steps to print and check best performance')
     parser.add_argument('--lr', default=LEARN_RATE, type=float, help='learning rate')
+    parser.add_argument('--lr-scheduler', default=LR_SCHEDULER, type=str, help='learning rate scheduler, there are two choices available, either reducePlateau or warm_restart')
+    parser.add_argument('--warm-restart-T-0', default=WARM_RESTART_T_0, type=int,
+                        help='the starting epoch of warm restart')
     parser.add_argument('--lr-decay-rate', default=LR_DECAY_RATE, type=float,
                         help='decay learn rate by multiplying this factor')
     parser.add_argument('--stop_threshold', default=STOP_THRESHOLD, type=float,
@@ -55,7 +54,6 @@ def read_flag():
     parser.add_argument('--data-dir', default=DATA_DIR, type=str, help='data directory')
     parser.add_argument('--normalize-input', default=NORMALIZE_INPUT, type=bool,
                         help='whether we should normalize the input or not')
-    parser.add_argument('--geoboundary', default=GEOBOUNDARY, type=tuple, help='the boundary of the geometric data')
     # Running specific params
     parser.add_argument('--eval-model', default=EVAL_MODEL, type=str, help='the folder name of the model that you want to evaluate')
     parser.add_argument('--use-cpu-only', type=bool, default=USE_CPU_ONLY, help='The boolean flag that indicate use CPU only')
