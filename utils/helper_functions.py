@@ -3,6 +3,8 @@ This is the helper functions for various functions
 1-4: retrieving the prediction or truth files in data/
 5: Put flags.obj and parameters.txt into the folder
 6-8: Functions handling flags
+9-12: Simulator functions
+13: Meta-simulator function
 14: Normalize at eval mode (get back the original range)
 """
 import os
@@ -11,10 +13,7 @@ from copy import deepcopy
 import sys
 import pickle
 import numpy as np
-<<<<<<< HEAD
-# from Data.Peurifoy.generate_Peurifoy import simulate as peur_sim
-=======
->>>>>>> e295e366bbc941a9b130228b3890f810b2945c7b
+#from Data.Peurifoy.generate_Peurifoy import simulate as peur_sim
 # from ensemble_mm.predict_ensemble import ensemble_predict_master
 # 1
 def get_Xpred(path, name=None):
@@ -163,31 +162,59 @@ def load_flags(save_dir, save_file="flags.obj"):
 
 
 # 8
-def write_flags_and_BVE(flags, ntwk, forward_best_loss=None):
+def write_flags_and_BVE(flags, best_validation_loss, save_dir, forward_best_loss=None):
     """
     The function that is usually executed at the end of the training where the flags and the best validation loss are recorded
     They are put in the folder that called this function and save as "parameters.txt"
     This parameter.txt is also attached to the generated email
     :param flags: The flags struct containing all the parameters
-    :param ntwk: The network object that contains the bvl, save_dir
-    :return: None
-    Deprecated parameters:
     :param best_validation_loss: The best_validation_loss recorded in a training
     :param forard_best_loss: The forward best loss only applicable for Tandem model
+    :return: None
     """
-    flags.best_validation_loss = ntwk.best_validation_loss 
-    flags.best_training_loss = ntwk.best_training_loss  
+    flags.best_validation_loss = best_validation_loss  # Change the y range to be acceptable long string
     if forward_best_loss is not None:
         flags.best_forward_validation_loss = forward_best_loss
+    # To avoid terrible looking shape of y_range
+    yrange = flags.y_range
+    # yrange_str = str(yrange[0]) + ' to ' + str(yrange[-1])
+    yrange_str = [yrange[0], yrange[-1]]
     copy_flags = deepcopy(flags)
+    copy_flags.y_range = yrange_str  # in order to not corrupt the original data strucutre
     flags_dict = vars(copy_flags)
     # Convert the dictionary into pandas data frame which is easier to handle with and write read
-    with open(os.path.join(ntwk.ckpt_dir, 'parameters.txt'), 'w') as f:
+    with open(os.path.join(save_dir, 'parameters.txt'), 'w') as f:
         print(flags_dict, file=f)
     # Pickle the obj
-    save_flags(flags, save_dir=ntwk.ckpt_dir)
+    save_flags(flags, save_dir=save_dir)
 
-   
+
+
+    
+# 15
+def simulator(data_set, Xpred):
+    """
+    This is the simulator which takes Xpred from inference models and feed them into real data
+    simulator to get Ypred
+    :param data_set: str, the name of the data set
+    :param Xpred: (N, dim_x), the numpy array of the Xpred got from the inference model
+    :return: Ypred from the simulator
+    """
+
+    if data_set == 'Peurifoy':
+        # The geometric boundary of peurifoy dataset is [30, 70], normalizing manually
+        Xpred = Xpred * 20. + 50
+        Ypred = []
+        for i in range(len(Xpred)):
+            spec = peur_sim(Xpred[i, :])
+            Ypred.append(spec)
+        return np.array(Ypred)
+    elif data_set == 'Yang':
+        sys.exit("You are using Yang dataset, there is no simulator built-in for Yang! Please use neural simulator")
+    else:
+        sys.exit("In Simulator: Your data_set entry is not correct, check again!")
+
+
 # 16
 def normalize_eval(x, x_max, x_min):
     """

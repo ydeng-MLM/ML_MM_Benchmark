@@ -1,13 +1,14 @@
 """
 Parameter file for specifying the running parameters for forward model
 """
-DATA_SET = 'ADM'
-#DATA_SET = 'Peurifoy'
+#DATA_SET = 'ADM'
+DATA_SET = 'Peurifoy'
 #DATA_SET = 'color'
 
 SKIP_CONNECTION = True
 USE_CONV = False
-LINEAR = [14, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2001]
+#LINEAR = [14, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2001]
+LINEAR = [8, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 201]
 #LINEAR = [3, 500, 500, 500, 500, 500, 500, 500, 500, 3]      #Still using two FC layers to have compatiable number of input parameters to tconv layers
 CONV_OUT_CHANNEL = [4, 4, 4, 8, 8]
 CONV_KERNEL_SIZE = [3, 24, 24, 24, 3]
@@ -15,15 +16,15 @@ CONV_STRIDE = [1, 2, 2, 2, 1]
 
 # Hyperparameters
 OPTIM = "Adam"
-REG_SCALE = 1e-4
+REG_SCALE = 1e-3
 BATCH_SIZE = 1024
 EVAL_STEP = 20
-TRAIN_STEP = 500
+TRAIN_STEP = 40
 LEARN_RATE = 1e-4
 LR_DECAY_RATE = 0.2
 STOP_THRESHOLD = 1e-9
-DROPOUT = 0.1
-SKIP_HEAD = 7
+DROPOUT = 0
+SKIP_HEAD = 3
 SKIP_TAIL = [2, 4, 6] #Currently useless
 
 # Data Specific params

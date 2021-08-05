@@ -39,7 +39,9 @@ def training_from_flag(flags):
 
     # Make Network
     ntwk = Network(Forward, flags, train_loader, test_loader)
-
+    total_param = sum(p.numel() for p in ntwk.model.parameters() if p.requires_grad)
+    print("Total learning parameter is: %d"%total_param)
+    
     # Training process
     print("Start training now...")
     ntwk.train()
