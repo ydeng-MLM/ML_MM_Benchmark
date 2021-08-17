@@ -7,15 +7,15 @@ import time
 if __name__ == '__main__':
     start = time.time()
     # Setting the loop for setting the parameter
-    for lr in [1e-4, 5e-4, 1e-3]:
-        for reg in [1e-4, 5e-4, 1e-3]:
+    for lr in [5e-5, 1e-4, 5e-4]:
+        for reg in [5e-5, 1e-4, 5e-4]:
             flags = flag_reader.read_flag()  	#setting the base case
             #flags.data_set = 'ADM'
             #flags.linear = [14, 2100, 2100, 2100, 2100, 2100, 2100, 2100, 2100, 2001]
             #flags.data_set = 'Peurifoy'
             #flags.linear = [8, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 201]          
             flags.data_set = 'color'
-            flags.linaer = [3, 500, 500, 500, 500, 500, 500, 500, 500, 3]
+            flags.linear = [3, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 3]
             flags.lr = lr
             flags.reg_scale = reg
             for j in range(3):

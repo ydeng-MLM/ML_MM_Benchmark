@@ -7,13 +7,13 @@ import time
 if __name__ == '__main__':
     start = time.time()
     # Setting the loop for setting the parameter
-    for batch in [256, 512, 1024, 2048]:
-        for decay in [0.1, 0.2, 0.3, 0.7]:
+    for batch in [128, 256, 512, 1024, 2048]:
+        for decay in [0.1, 0.2, 0.3, 0.4, 0.5]:
             flags = flag_reader.read_flag()  	#setting the base case
             #flags.data_set = 'ADM'
             #flags.linear = [14, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2001]
             flags.data_set = 'color'
-            flags.linear = [3, 500, 500, 500, 500, 500, 500, 500, 500, 3]
+            flags.linear = [3, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 3]
             flags.lr = 0.0001
             flags.reg_scale = 0.0001
             #flags.data_set = 'Peurifoy'

@@ -7,8 +7,8 @@ import time
 if __name__ == '__main__':
     start = time.time()
     # Setting the loop for setting the parameter
-    for dp in [0]:
-        for skip in [0, 1, 2, 3, 4, 5]:
+    for dp in [0, 0.1, 0.2, 0.3]:
+        for skip in [0, 2, 4, 6]:
             flags = flag_reader.read_flag()  	#setting the base case
             #flags.data_set = 'ADM'
             #flags.linear = [14, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2001]
@@ -19,7 +19,7 @@ if __name__ == '__main__':
             #flags.lr = 0.0001
             #flags.reg_scale = 0.001
             flags.data_set = 'color'
-            flags.linear = [3, 500, 500, 500, 500, 500, 500, 500, 500, 3]
+            flags.linear = [3, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 3]
             flags.lr = 0.0001
             flags.reg_scale = 0.0001
             flags.dropout = dp
