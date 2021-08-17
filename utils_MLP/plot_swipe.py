@@ -1,7 +1,7 @@
 import torch
 import plotsAnalysis
 if __name__ == '__main__':
-    pathnamelist = ['/scratch/yd105/ML_MM_Benchmark/MLP_CNN/models/color_dp_skip_1']
+    pathnamelist = ['/scratch/yd105/ML_MM_Benchmark/MLP_CNN/models/color_dp_skip_3']
     for pathname in pathnamelist:
         
         # Forward: Convolutional swipe
