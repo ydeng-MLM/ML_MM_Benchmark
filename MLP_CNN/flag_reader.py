@@ -21,6 +21,7 @@ def read_flag():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data-set', default=DATA_SET, type=str, help='which data set you are chosing')
     # Model Architectural Params
+    parser.add_argument('--skip-connection', type=bool, default=SKIP_CONNECTION, help='The boolean flag indicates whether use skip connections')
     parser.add_argument('--use-conv', type=bool, default=USE_CONV, help='The boolean flag that indicate whether we use upconv layer if not using lorentz')
     parser.add_argument('--linear', type=list, default=LINEAR, help='The fc layers units')
     parser.add_argument('--conv-out-channel', type=list, default=CONV_OUT_CHANNEL, help='The output channel of your 1d conv')
@@ -41,12 +42,23 @@ def read_flag():
                         help='decay learn rate by multiplying this factor')
     parser.add_argument('--stop_threshold', default=STOP_THRESHOLD, type=float,
                         help='The threshold below which training should stop')
+    parser.add_argument('--dropout', default=DROPOUT, type=float,
+                        help='dropout rate')
+    parser.add_argument('--skip_head', default=SKIP_HEAD, type=int,
+                        help='skip head')
+    parser.add_argument('--skip_tail', default=SKIP_TAIL, type=list,
+                        help='skip tail')
+
+
+
     # Data specific Params
     parser.add_argument('--geoboundary', default=GEOBOUNDARY, type=tuple, help='the boundary of the geometric data')
     parser.add_argument('--data-dir', default=DATA_DIR, type=str, help='data directory')
     parser.add_argument('--normalize-input', default=NORMALIZE_INPUT, type=bool,
                         help='whether we should normalize the input or not')
     parser.add_argument('--test-ratio', default=TEST_RATIO, type=float, help='the ratio of test case')
+    parser.add_argument('--rand-seed', default=RAND_SEED, type=float, help='Random seed for train/val split')
+
 
     # Running specific
     parser.add_argument('--eval-model', default=EVAL_MODEL, type=str,

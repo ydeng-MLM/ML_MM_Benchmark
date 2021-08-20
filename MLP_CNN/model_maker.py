@@ -19,7 +19,14 @@ class Forward(nn.Module):
     def __init__(self, flags, fre_low=0.8, fre_high=1.5):
         super(Forward, self).__init__()
 
+        self.skip_connection = flags.skip_connection
         self.use_conv = flags.use_conv
+        if flags.dropout > 0:
+            self.dp = True
+            self.dropout = nn.Dropout(p=flags.dropout)
+        else:
+            self.dp = False
+        self.skip_head = flags.skip_head
 
         """
         General layer definitions:
@@ -58,7 +65,7 @@ class Forward(nn.Module):
             #self.convs.append(nn.Conv1d(in_channel, out_channels=1, kernel_size=1, stride=1, padding=0))        #Questionable if we still need the last conv layer, will do some test
             #self.bn_convs.append(nn.BatchNorm1d(1))
 
-        self.fc_out = nn.Linear(64000, 201)
+            self.fc_out = nn.Linear(200, 3)
 
     def forward(self, G):
         """
@@ -70,12 +77,32 @@ class Forward(nn.Module):
 
         # For the linear part
         for ind, (fc, bn) in enumerate(zip(self.linears, self.bn_linears)):
-            #print(out.size())
-            if ind < len(self.linears) - 1:
-                out = F.relu(bn(fc(out)))                                  # ReLU + BN + Linear
+            #print(out.size()
+            if self.skip_connection:
+                if ind < len(self.linears) - 1:
+                    if ind == self.skip_head:
+                        out = F.relu(bn(fc(out)))
+                        if self.dp:
+                            out = self.dropout(out)
+                        identity = out
+                    elif ind > self.skip_head and (ind - self.skip_head)%2 == 0:
+                        out = F.relu(bn(fc(out)))   # ReLU + BN + Linear
+                        if self.dp: 
+                            out = self.dropout(out)
+                        out += identity
+                        identity = out
+                    else:
+                        out = F.relu(bn(fc(out)))
+                        if self.dp:
+                            out = self.dropout(out)
+                else:
+                    out = (fc(out))
             else:
-                out = bn(fc(out))
-
+                if ind < len(self.linears) - 1:
+                    out = F.relu(bn(fc(out)))
+                else:
+                    out = fc(out)
+                
 
         # The normal mode to train without Lorentz
         if self.use_conv:

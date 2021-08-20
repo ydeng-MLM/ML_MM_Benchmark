@@ -76,8 +76,7 @@ def hyperswipe():
     #lr_list = [1e-4, 2e-4]
     reg_scale_list = [1e-4]
     decay_list = [0.3]
-    trail_num = 2
-
+    trail_num = 0 
     for feature_channel_num in feature_channel_num_list:
         for nhead_encoder in nhead_encoder_list:
             for dim_fc_encoder in dim_fc_encoder_list:
@@ -121,7 +120,6 @@ def hyperswipe():
 
 
 
-
 def hyperswipe_lr_decay():
     """
     sweep over the learning rate related parameters
@@ -154,9 +152,6 @@ def hyperswipe_lr_warm_restart():
             flags.warm_restart_T_0 = wr_T
             flags.model_name = flags.data_set + '_lr_' + str(lr) + '_warm_restart_T_' + str(wr_T) + '_feature_channel_' + str(flags.feature_channel_num) + '_natthead_' + str(flags.nhead_encoder) + '_encoder_dim_fc_' + str(flags.dim_fc_encoder) + '_head_num_layer_' + str(len(flags.head_linear)) + '_head_node_' + str(flags.head_linear[-2]) + '_trail_' + str(trail)
             training_from_flag(flags)
-
-
-
 
 if __name__ == '__main__':
     # torch.manual_seed(1)
