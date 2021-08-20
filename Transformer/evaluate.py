@@ -56,7 +56,7 @@ def predict_different_dataset(multi_flag=False):
             predict(model, Ytruth_file, multi_flag=multi_flag)
 
 
-def evaluate_from_model(model_dir, multi_flag=False, eval_data_all=False, modulized_flag=False):
+def evaluate_from_model(model_dir):
     """
     Evaluating interface. 1. Retreive the flags 2. get data 3. initialize network 4. eval
     :param model_dir: The folder to retrieve the model
@@ -72,7 +72,7 @@ def evaluate_from_model(model_dir, multi_flag=False, eval_data_all=False, moduli
     
     flags.test_ratio = get_test_ratio_helper(flags)
     # Get the data
-    train_loader, test_loader = data_reader.read_data(flags, eval_data_all=eval_data_all)
+    train_loader, test_loader = data_reader.read_data(flags, eval_data_all=True)
     print("Making network now")
 
     # Make Network
@@ -83,31 +83,10 @@ def evaluate_from_model(model_dir, multi_flag=False, eval_data_all=False, moduli
 
     # Evaluation process
     print("Start eval now:")
-    if modulized_flag:
-        ntwk.evaluate_modulized_multi_time()
-    elif multi_flag:
-        ntwk.evaluate_multiple_time()
-    else:
-        pred_file, truth_file = ntwk.evaluate()
+    pred_file, truth_file = ntwk.evaluate()
 
-     # Plot the MSE distribution
-    if flags.data_set != 'Yang_sim' and not multi_flag and not modulized_flag:  # meta-material does not have simulator, hence no Ypred given
-        MSE = plotMSELossDistrib(pred_file, truth_file, flags)
-        # Add this MSE back to the folder
-        flags.best_validation_loss = MSE
-        helper_functions.save_flags(flags, os.path.join("models", model_dir))
-    elif flags.data_set == 'Yang_sim' and not multi_flag and not modulized_flag:
-        # Save the current path for getting back in the future
-        cwd = os.getcwd()
-        abs_path_Xpred = os.path.abspath(pred_file.replace('Ypred','Xpred'))
-        # Change to NA dictory to do prediction
-        os.chdir('../NA/')
-        MSE = predict.ensemble_predict_master('../Data/Yang_sim/state_dicts/', 
-                                abs_path_Xpred, no_plot=False)
-        # Add this MSE back to the folder
-        flags.best_validation_loss = MSE
-        os.chdir(cwd)
-        helper_functions.save_flags(flags, os.path.join("models", model_dir))
+    # Plot the MSE distribution
+    MSE = plotMSELossDistrib(pred_file, truth_file, flags)
     print("Evaluation finished")
 
     
@@ -154,7 +133,7 @@ if __name__ == '__main__':
     #evaluate_different_dataset(multi_flag=False, eval_data_all=False)
     #evaluate_different_dataset(multi_flag=True, eval_data_all=False)
     #evaluate_different_dataset(multi_flag=True)
-    evaluate_all("models/")
+    evaluate_all("models/best_models/")
     #evaluate_all("models/Peurifoy_4th/")
 
     ###########

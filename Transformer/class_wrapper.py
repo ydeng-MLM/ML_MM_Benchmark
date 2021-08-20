@@ -11,7 +11,6 @@ from torch import nn
 from torch.utils.tensorboard import SummaryWriter
 # from torchsummary import summary
 from torch.optim import lr_scheduler
-from utils.helper_functions import simulator
 # Libs
 import numpy as np
 from math import inf
@@ -42,6 +41,7 @@ class Network(object):
         self.test_loader = test_loader                          # The test data loader
         self.log = SummaryWriter(self.ckpt_dir)     # Create a summary writer for keeping the summary to the tensor board
         self.best_validation_loss = float('inf')    # Set the BVL to large number
+        self.best_training_loss = float('inf')    # Set the BTL to large number
 
     def create_model(self):
         """
@@ -90,7 +90,10 @@ class Network(object):
         1. ReduceLROnPlateau (decrease lr when validation error stops improving
         :return:
         """
-        return lr_scheduler.ReduceLROnPlateau(optimizer=optm, mode='min',
+        if self.flags.lr_scheduler == 'warm_restart':
+            return lr_scheduler.CosineAnnealingWarmRestarts(optm, self.flags.warm_restart_T_0, T_mult=1, eta_min=0, last_epoch=-1, verbose=False) 
+        elif self.flags.lr_scheduler == 'reduce_plateau':
+            return lr_scheduler.ReduceLROnPlateau(optimizer=optm, mode='min',
                                               factor=self.flags.lr_decay_rate,
                                               patience=10, verbose=True, threshold=1e-4)
 
@@ -109,6 +112,11 @@ class Network(object):
         """
         # self.model.load_state_dict(torch.load(os.path.join(self.ckpt_dir, 'best_model_state_dict.pt')))
         self.model = torch.load(os.path.join(self.ckpt_dir, 'best_model_forward.pt'))
+    
+    def get_cuda_memory_info(self):
+        r = torch.cuda.memory_reserved(0)/1e9
+        a = torch.cuda.memory_allocated(0)/1e9
+        print('after delete, reserved memory {}G, allocated memory {}G'.format(r,a))
 
     def train(self):
         """
@@ -140,10 +148,18 @@ class Network(object):
                 loss = self.make_loss(logit=S_pred, labels=spectra)
                 loss.backward()                                     # Calculate the backward gradients
                 self.optm.step()                                    # Move one step the optimizer
-                train_loss += loss                                  # Aggregate the loss
+                train_loss += loss.cpu().data.numpy()                                  # Aggregate the loss
+                del S_pred, loss
+                ################ Debugging the memory cuda #################
+                print('in epoch {} test batch {}, lenghth is :'.format(epoch, j))
+                self.get_cuda_memory_info()
+                ################ Debugging the memory cuda #################
 
             # Calculate the avg loss of training
-            train_avg_loss = train_loss.cpu().data.numpy() / (j + 1)
+            train_avg_loss = train_loss / (j + 1)
+            # Recording the best training loss
+            if train_avg_loss < self.best_training_loss:
+                self.best_training_loss = train_avg_loss
 
             if epoch % self.flags.eval_step == 0:                      # For eval steps, do the evaluations and tensor board
                 # Record the training loss to the tensorboard
@@ -157,12 +173,23 @@ class Network(object):
                     if cuda:
                         geometry = geometry.cuda()
                         spectra = spectra.cuda()
+                    ################ Debugging the memory cuda #################
+                    #print('in epoch {} test batch {}, lenghth is :'.format(epoch, j))
+                    #self.get_cuda_memory_info()
+                    ################ Debugging the memory cuda #################
+
+
                     S_pred = self.model(geometry)
                     loss = self.make_loss(logit=S_pred, labels=spectra)
-                    test_loss += loss                                       # Aggregate the loss
+                    #print(loss.cpu().data.numpy())
+                    test_loss += loss.cpu().data.numpy()                                       # Aggregate the loss
+                    del loss, S_pred
+                    ################ Debugging the memory cuda #################
+                    #self.get_cuda_memory_info()
+                    ################ Debugging the memory cuda #################
 
                 # Record the testing loss to the tensorboard
-                test_avg_loss = test_loss.cpu().data.numpy() / (j+1)
+                test_avg_loss = test_loss/ (j+1)
                 self.log.add_scalar('Loss/total_test', test_avg_loss, epoch)
 
                 print("This is Epoch %d, training loss %.5f, validation loss %.5f" \
@@ -198,6 +225,7 @@ class Network(object):
         Ytruth_file = os.path.join(save_dir, 'test_Ytruth_{}.csv'.format(saved_model_str))
 
         tk = time_keeper(os.path.join(save_dir, 'evaluation_time.txt'))
+
         # Open those files to append
         with open(Xtruth_file, 'a') as fxt,open(Ytruth_file, 'a') as fyt,\
                 open(Ypred_file, 'a') as fyp:
@@ -259,8 +287,5 @@ class Network(object):
         with open(Ytruth_file, 'a') as fyt, open(Ypred_file, 'a') as fyp, open(Xpred_file, 'a') as fxp:
             np.savetxt(fyt, Ytruth_tensor.cpu().data.numpy())
             np.savetxt(fxp, Xpred)
-            if self.flags.data_set != 'Yang_sim':
-                Ypred = simulator(self.flags.data_set, Xpred)
-                np.savetxt(fyp, Ypred)
         tk.record(1)
         return Ypred_file, Ytruth_file
