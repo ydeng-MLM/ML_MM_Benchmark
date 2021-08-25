@@ -229,13 +229,13 @@ def HeatMapBVL(plot_x_name, plot_y_name, title,  save_name='HeatMap.png', HeatMa
                 df = pd.DataFrame()
                 for k in flag_dict:
                     df[k] = pd.Series(str(flag_dict[k]), index=[0])
-                print(df)
+                #print(df)
                 if (one_dimension_flag):
                     df_list.append(df[[heat_value_name, feature_1_name]])
                     HMpoint_list.append(HMpoint(float(df[heat_value_name][0]), eval(str(df[feature_1_name][0])), 
                                                 f1_name = feature_1_name))
                 else:
-                    if feature_2_name == 'linear_unit':                         # If comparing different linear units
+                    if feature_2_name == 'linear_unit' or feature_1_name =='lienar_unit':                         # If comparing different linear units
                         # linear_unit has always need to be at the feature_2 and either from linear or linear_f,
                         # If you want to test for linear_b for Tandem, make sure you modify manually here
                         try:
@@ -247,35 +247,36 @@ def HeatMapBVL(plot_x_name, plot_y_name, title,  save_name='HeatMap.png', HeatMa
                                 df['linear_unit'] = eval(df['tail_linear'][0])[1]
                         #df['best_validation_loss'] = get_bvl(file_path)
                     if feature_2_name == 'kernel_second':                       # If comparing different kernel convs
-                        print(df['conv_kernel_size'])
-                        print(type(df['conv_kernel_size']))
+                        #print(df['conv_kernel_size'])
+                        #print(type(df['conv_kernel_size']))
                         df['kernel_second'] = eval(df['conv_kernel_size'][0])[1]
                         df['kernel_first'] = eval(df['conv_kernel_size'][0])[0]
                     df_list.append(df[[heat_value_name, feature_1_name, feature_2_name]])
                     HMpoint_list.append(HMpoint(float(df[heat_value_name][0]),eval(str(df[feature_1_name][0])),
                                                 eval(str(df[feature_2_name][0])), feature_1_name, feature_2_name))
     
-    print("df_list =", df_list)
+    #print("df_list =", df_list)
     if len(df_list) == 0:
         print("Your df list is empty, which means you probably mis-spelled the folder name or your folder does not have any parameters.txt?")
     #Concatenate all the dfs into a single aggregate one for 2 dimensional usee
     df_aggregate = pd.concat(df_list, ignore_index = True, sort = False)
     df_aggregate = df_aggregate.astype({heat_value_name: 'float'})
 
-    print("before transformation:", df_aggregate)
+    #print("before transformation:", df_aggregate)
     [h, w] = df_aggregate.shape
-    print('df_aggregate has shape {}, {}'.format(h, w))
+    #print('df_aggregate has shape {}, {}'.format(h, w))
     # making the 2d ones with list to be the lenghth (num_layers)
     for i in range(h):
         for j in range(w):
-            print('debugging for nan: ', df_aggregate.iloc[i,j])
+            #print('debugging for nan: ', df_aggregate.iloc[i,j])
             if isinstance(df_aggregate.iloc[i,j], str) and 'nan' not in df_aggregate.iloc[i,j]:
                 if isinstance(eval(df_aggregate.iloc[i,j]), list):
                     df_aggregate.iloc[i,j] = len(eval(df_aggregate.iloc[i,j]))
 
     # If the grid is random (making too sparse a signal), aggregate them
     # The signature of a random grid is the unique value of rows for feature is very large
-    if len(np.unique(df_aggregate.values[:, -1])) > 0.8 * h:        # If the number of unique features is more than 80%, this is random
+    if len(np.unique(df_aggregate.values[:, -1])) > 0.95 * h and False:        # If the number of unique features is more than 80%, this is random
+        print('This is probably a randomly selected trail? check if not!!!')
         df_aggregate = df_aggregate.astype('float')
         num_bins = 5                                                # Put all random values into 5 bins
         num_items = int(np.floor(h/num_bins))                            # each bins have num_item numbers inside, last one being more
@@ -291,16 +292,16 @@ def HeatMapBVL(plot_x_name, plot_y_name, title,  save_name='HeatMap.png', HeatMa
                 df_aggregate.iloc[feature_1_order[i*num_items: ], -1] = df_aggregate.iloc[feature_1_order[i*num_items], -1]
                 df_aggregate.iloc[feature_2_order[i*num_items: ], -2] = df_aggregate.iloc[feature_2_order[i*num_items], -2]
     
-    print('type of last number of df_aggregate is', type(df_aggregate.iloc[-1, -1]))
+    #print('type of last number of df_aggregate is', type(df_aggregate.iloc[-1, -1]))
     ########################################################################################################
     df_aggregate.iloc[:, df.columns != heat_value_name] = df_aggregate.iloc[:, df.columns != heat_value_name].round(decimals=3)        
     ########################################################################################################
-    print("after transoformation:",df_aggregate)
+    #print("after transoformation:",df_aggregate)
     
     #Change the feature if it is a tuple, change to length of it
     for cnt, point in enumerate(HMpoint_list):
-        print("For point {} , it has {} loss, {} for feature 1 and {} for feature 2".format(cnt, 
-                                                                point.bv_loss, point.feature_1, point.feature_2))
+        #print("For point {} , it has {} loss, {} for feature 1 and {} for feature 2".format(cnt, 
+        #                                                        point.bv_loss, point.feature_1, point.feature_2))
         assert(isinstance(point.bv_loss, float))        #make sure this is a floating number
         if (isinstance(point.feature_1, tuple)):
             point.feature_1 = len(point.feature_1)
@@ -326,17 +327,20 @@ def HeatMapBVL(plot_x_name, plot_y_name, title,  save_name='HeatMap.png', HeatMa
     else: #Or this is a 2 dimension HeatMap
         print("plotting 2 dimension HeatMap")
         #point_df = pd.DataFrame.from_records([point.to_dict() for point in HMpoint_list])
-        df_aggregate = df_aggregate.round(decimals=3)
+        df_aggregate = df_aggregate.round(decimals=5)
         df_aggregate = df_aggregate.reset_index()
         df_aggregate.sort_values(feature_1_name, axis=0, inplace=True)
         df_aggregate.sort_values(feature_2_name, axis=0, inplace=True)
         df_aggregate.sort_values(heat_value_name, axis=0, inplace=True)
-        print("before dropping", df_aggregate)
+        #print("before dropping", df_aggregate)
         df_aggregate = df_aggregate.drop_duplicates(subset=[feature_1_name, feature_2_name], keep='first')
-        print("after dropping", df_aggregate)
+        #print("after dropping", df_aggregate)
         point_df_pivot = df_aggregate.reset_index().pivot(index=feature_1_name, columns=feature_2_name, values=heat_value_name).astype(float)
-        point_df_pivot = point_df_pivot.rename({'5': '05'}, axis=1)
-        point_df_pivot = point_df_pivot.reindex(sorted(point_df_pivot.columns), axis=1)
+        #point_df_pivot = point_df_pivot.rename({'5': '05'}, axis=1)
+        # Trying to sort the indexs
+        point_df_pivot.sort_index(axis=0, inplace=True, key=lambda x: x.astype(float))
+        point_df_pivot.sort_index(axis=1, inplace=True, key=lambda x: x.astype(float))
+        #point_df_pivot = point_df_pivot.reindex(sorted(point_df_pivot.columns), axis=1)
         print("pivot=")
         csvname = HeatMap_dir + 'pivoted.csv'
         point_df_pivot.to_csv(csvname, float_format="%.3g")

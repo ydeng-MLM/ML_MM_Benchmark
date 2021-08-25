@@ -5,6 +5,7 @@
 # The huge data folder
 *Data
 Data/
+test*/
 datasets/
 
 # The model files trained

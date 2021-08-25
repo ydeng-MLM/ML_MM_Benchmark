@@ -8,7 +8,6 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
-from utils.helper_functions import simulator
 
 
 def get_test_ratio_helper(flags):

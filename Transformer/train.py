@@ -62,17 +62,21 @@ def hyperswipe():
     This is for doing hyperswiping for the model parameters
     """
     # reg_scale_list = [1e-4]
-    #feature_channel_num_list = [8]
-    feature_channel_num_list = [128]
-    nhead_encoder_list = [8, 16]
+    feature_channel_num_list = [64]
+    #feature_channel_num_list = [64,128]
+    nhead_encoder_list = [8]
     dim_fc_encoder_list = [32] 
     head_fc_layer_num_list = [10]
     head_layer_node_num_list = [500]
-    tail_fc_layer_num_list = [2, 4, 8]
+    tail_fc_layer_num_list = [0]
     tail_layer_node_num_list = [500]
-    num_encoder_layer_list = [3, 6]
-    sequence_len_list = [4, 8, 16]
-
+    num_encoder_layer_list = [8]
+    sequence_len_list = [32]
+    lr_list = [2e-4]
+    #lr_list = [1e-4, 2e-4]
+    reg_scale_list = [1e-4]
+    decay_list = [0.3]
+    trail_num = 0 
     for feature_channel_num in feature_channel_num_list:
         for nhead_encoder in nhead_encoder_list:
             for dim_fc_encoder in dim_fc_encoder_list:
@@ -82,25 +86,39 @@ def hyperswipe():
                             for num_encoder_layer in num_encoder_layer_list:
                                 for tail_fc_layer_num in tail_fc_layer_num_list:
                                     for tail_layer_node_num in tail_layer_node_num_list:
-                                        flags = flag_reader.read_flag()  	#setting the base case
-                                        flags.feature_channel_num = feature_channel_num
-                                        flags.nhead_encoder = nhead_encoder
-                                        flags.dim_fc_encoder = dim_fc_encoder
-                                        flags.num_encoder_layer = num_encoder_layer
-                                        flags.sequence_length = sequence_length
-                                        flags.head_linear = [flags.dim_G] + [head_layer_node_num for i in range(head_fc_layer_num)] + [flags.sequence_length * flags.feature_channel_num]
-                                        flags.tail_linear = [tail_layer_node_num for i in range(tail_fc_layer_num)] + [flags.dim_S]
-                                        print('feature_channel_num', flags.feature_channel_num)
-                                        print('nhead', flags.nhead_encoder)
-                                        print('dim_fc_encoder', flags.dim_fc_encoder)
-                                        print('head_linear',flags.head_linear)
-                                        print('linear layer here is ', flags.head_linear)
-                                        flags.model_name = flags.data_set + '_feature_channel_' + str(feature_channel_num) + \
-                                                            '_natthead_' + str(nhead_encoder) + '_encoder_dim_fc_' + str(dim_fc_encoder) +\
-                                                            '_head_num_layer_' + str(head_fc_layer_num) + '_head_node_' + str(head_layer_node_num) +\
-                                                            '_tail_num_layer_' + str(tail_fc_layer_num) + '_head_node_' + str(tail_layer_node_num) +\
-                                                            '_num_encoder_layer_' + str(num_encoder_layer) + '_sequence_length_' + str(sequence_length)
-                                        training_from_flag(flags)
+                                        for lr in lr_list:
+                                            for decay in decay_list:
+                                                for reg_scale in reg_scale_list:
+                                                    for trail in range(trail_num):
+                                                        flags = flag_reader.read_flag()  	#setting the base case
+                                                        flags.lr = lr
+                                                        flags.lr_decay_rate = decay
+                                                        flags.reg_scale = reg_scale
+                                                        flags.feature_channel_num = feature_channel_num
+                                                        flags.nhead_encoder = nhead_encoder
+                                                        flags.dim_fc_encoder = dim_fc_encoder
+                                                        flags.num_encoder_layer = num_encoder_layer
+                                                        flags.sequence_length = sequence_length
+                                                        flags.head_linear = [flags.dim_G] + [head_layer_node_num for i in range(head_fc_layer_num)] + [flags.sequence_length * flags.feature_channel_num]
+                                                        ####
+                                                        # This is fixing the total number of parameters to be the similar
+                                                        #tail_fc_layer_num = 10 - head_fc_layer_num
+                                                        ####
+                                                        flags.tail_linear = [tail_layer_node_num for i in range(tail_fc_layer_num)] + [flags.dim_S]
+                                                        print('feature_channel_num', flags.feature_channel_num)
+                                                        print('nhead', flags.nhead_encoder)
+                                                        print('dim_fc_encoder', flags.dim_fc_encoder)
+                                                        print('head_linear',flags.head_linear)
+                                                        print('linear layer here is ', flags.head_linear)
+                                                        flags.model_name = flags.data_set + '_feature_channel_' + str(feature_channel_num) + \
+                                                                            '_natthead_' + str(nhead_encoder) + '_encoder_dim_fc_' + str(dim_fc_encoder) +\
+                                                                            '_head_num_layer_' + str(head_fc_layer_num) + '_head_node_' + str(head_layer_node_num) +\
+                                                                            '_tail_num_layer_' + str(tail_fc_layer_num) + '_head_node_' + str(tail_layer_node_num) +\
+                                                                            '_num_encoder_layer_' + str(num_encoder_layer) + '_sequence_length_' + str(sequence_length) +\
+                                                                            '_lr_' + str(lr) + '_decay_' + str(decay) + '_reg_' + str(reg_scale) + '_trail_' + str(trail)
+                                                        training_from_flag(flags)
+
+
 
 def hyperswipe_lr_decay():
     """
@@ -134,9 +152,6 @@ def hyperswipe_lr_warm_restart():
             flags.warm_restart_T_0 = wr_T
             flags.model_name = flags.data_set + '_lr_' + str(lr) + '_warm_restart_T_' + str(wr_T) + '_feature_channel_' + str(flags.feature_channel_num) + '_natthead_' + str(flags.nhead_encoder) + '_encoder_dim_fc_' + str(flags.dim_fc_encoder) + '_head_num_layer_' + str(len(flags.head_linear)) + '_head_node_' + str(flags.head_linear[-2]) + '_trail_' + str(trail)
             training_from_flag(flags)
-
-
-
 
 if __name__ == '__main__':
     # torch.manual_seed(1)

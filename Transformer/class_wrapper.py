@@ -225,6 +225,7 @@ class Network(object):
         Ytruth_file = os.path.join(save_dir, 'test_Ytruth_{}.csv'.format(saved_model_str))
 
         tk = time_keeper(os.path.join(save_dir, 'evaluation_time.txt'))
+
         # Open those files to append
         with open(Xtruth_file, 'a') as fxt,open(Ytruth_file, 'a') as fyt,\
                 open(Ypred_file, 'a') as fyp:
