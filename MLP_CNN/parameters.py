@@ -2,23 +2,28 @@
 Parameter file for specifying the running parameters for forward model
 """
 #DATA_SET = 'ADM'
-#DATA_SET = 'Peurifoy'
-DATA_SET = 'color'
+DATA_SET = 'Peurifoy'
+#DATA_SET = 'color'
 
-SKIP_CONNECTION = True
+SKIP_CONNECTION = False
 USE_CONV = False
+CONV_OUT_CHANNEL = []
+CONV_KERNEL_SIZE = []
+CONV_STRIDE = []
 #ADM
 #LINEAR = [14, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2001]
 #Nanophotonics particles
 #LINEAR = [8, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 201]
 #color
-LINEAR = [3, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 3]      
+#LINEAR = [3, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 3]      
+
+LINEAR = [8, 250, 250, 250, 250, 201]
 
 # Hyperparameters
 OPTIM = "Adam"
 #For Nanophotnics particles
 #REG_SCLAE = 1e-3
-REG_SCALE = 1e-4
+REG_SCALE = 1e-3
 BATCH_SIZE = 1024
 EVAL_STEP = 20
 TRAIN_STEP = 500
@@ -43,5 +48,5 @@ RAND_SEED = 1
 # Running specific
 USE_CPU_ONLY = False
 MODEL_NAME  = None
-EVAL_MODEL = "ADM_best_2"
+EVAL_MODEL = "Peurifoy_best_0"
 NUM_COM_PLOT_TENSORBOARD = 1

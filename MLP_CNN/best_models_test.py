@@ -7,7 +7,7 @@ import os
 import pandas as pd
 import numpy as np
 import sys
-sys.path.insert(-1, '/scratch/yd105/ML_MM_Benchmark')
+sys.path.insert(0, '/scratch/yd105/ML_MM_Benchmark')
 # Torch
 
 # Own
@@ -94,10 +94,12 @@ def data_check():
 
 
 if __name__ == '__main__':
-    # Read the parameters to be set
-    flags = flag_reader.read_flag()
-    # Call the train from flag function
-    training_from_flag(flags)
+    for i in range(5):
+        # Read the parameters to be set
+        flags = flag_reader.load_flags(os.path.join('models', 'best_models', 'ADM_best_0'))
+        flags.model_name = "retrain_ADM_best_ben_norm_"+str(i)
+        # Call the train from flag function
+        training_from_flag(flags)
 
 
 
