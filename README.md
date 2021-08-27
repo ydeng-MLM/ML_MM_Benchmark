@@ -4,7 +4,7 @@ This repository stores implemention of paper [Benchmarking Data-driven Surrogate
 It includes a suit of ADM data set benchmarks along with implementation of various ready-to-use deep learning architectures (MLP, Transformer, MLP-Mixer) for scientific computation problem and a handful of utility functions.
 
 ## Data Sets
-![geometry_illustration](./geometry_illustration.png)
+![geometry_illustration](./images/geometry_illustration.png)
 [TO ADD DESCRIPTION]
 
 ## Requirements
@@ -32,16 +32,16 @@ visible runtime
 ## Results
 
 ### Performance of various DL structures on benchmark ADM data sets
-<img src="./performance_result.png" width=70% height=50%>
+<img src="./images/performance_result.png" width=70% height=50%>
 
 
 <!-- ![performance_result](./performance_result.png) -->
 ### Effect of Hyper-parameters on Transformer's performance
-<img src="./Transformer_result.png" width=70% height=50%>
+<img src="./images/Transformer_result.png" width=70% height=50%>
 <!-- ![Transformer_result](./Transformer_result.png) -->
 
 ### Effect of Hyper-parameters on MLP-Mixer's performance
-<img src="./MLP-Mixer_result.png" width=70% height=50%>
+<img src="./images/MLP-Mixer_result.png" width=70% height=50%>
 <!-- ![MLP-Mixer_result](./MLP-Mixer_result.png) -->
 
 
