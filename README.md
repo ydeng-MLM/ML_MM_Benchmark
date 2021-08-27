@@ -31,6 +31,12 @@ visible runtime
 
 ## Results
 
+### Performance of various DL structures on benchmark ADM data sets
+![performance_result](./performance_result.png)
+### Effect of Hyper-parameters on Transformer's performance
+![Transformer_result](./Transformer_result.png)
+### Effect of Hyper-parameters on MLP-Mixer's performance
+![MLP-Mixer_result](./MLP-Mixer_result.png)
 
 
 ## Usage
@@ -53,6 +59,24 @@ dataset = Load_ADM()
 train_X, train_Y, val_X, val_Y, test_X, test_Y = train_val_test_split(data_set)
 ```
 
+### Loading Models with configurable hyper-paramters and making prediction
+```
+from models import DukeTransformer, DukeMIXER
+model_transformer = DukeTransformer(...)
+model_mixer = DukeMIXER(...)
+
+model_transformer(test_X)
+model_mixer(test_X)
+```
+### Building heatmap and Plotting
+```
+import seaborn as sns
+from models import DukeTransformer
+from sweep import sweep
+result = sweep(DukeTransformer, sweep_dict)
+heatmap = build_heatmap(result)
+sns.heatmap(heatmap)
+```
 
 ## Support
 
