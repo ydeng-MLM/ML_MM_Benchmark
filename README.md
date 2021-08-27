@@ -18,6 +18,8 @@ It includes a suit of ADM data set benchmarks along with implementation of vario
 | Tqdm| \>=4.42.0 |
 | Sklearn | \>=0.22.1|
 | Matplotlib | \>= 3.1.3|
+| einops | \>= 0.3.0|
+| seaborn | \>= 0.11.2|
 ### Environment
 1. The detailed conda environment is packaged in [.yml file](./demo/environment_droplet.yml).
 2. Add the [Benchmarking folder](./Benchmarking%20Algorithms) as one of the source directory to make utils and Simulated_Dataset folders 
