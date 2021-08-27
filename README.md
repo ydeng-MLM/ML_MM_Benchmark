@@ -1,12 +1,14 @@
-# ML_MM_Benchmark
+# Benchmarking ADM problems with various DL structures
 This is the repository for NeuIPS paper [...] 
 
 3 physical problems + multiple ML architectures benchmarking
 
-## Features
+## Features (We have to make up some cool features)
 * Access to several datasets involving 3D molecular structure. 
 * LMDB data format for storing lots of molecules (and associated metadata).
 * Utilities for splitting/filtering data based on many criteria.
+
+## Data Sets
 
 ## Usage
 ### Downloading a dataset
