@@ -28,6 +28,8 @@ visible runtime
 * Utilities for **data preprocessing and preparation** for downstream deep learning tasks
 * Utilities for **plotting** and easy analysis of results
 
+## Results
+
 
 
 ## Usage
@@ -37,12 +39,17 @@ visible runtime
 2. Particle Data Set. Please download and unzip from the [website](https://www.atom3d.ai/).
 3. Color Data Set. Please download and unzip from the [website](https://www.atom3d.ai/).
 
+### Download Pre-trained Models 
+1. MLP: Please download and unzip from the [website](https://www.atom3d.ai/).
+2. Transformer: Please download and unzip from the [website](https://www.atom3d.ai/).
+3. MLP-Mixer: Please download and unzip from the [website](https://www.atom3d.ai/).
+
 ### Loading and Spliting the Data Sets
 ```
-import atom3d.datasets as da
-dataset = da.load_dataset(PATH_TO_DATASET, {'lmdb','pdb','silent','sdf','xyz','xyz-gdb'})
-print(len(dataset))  # Print length
-print(dataset[0].keys())  # Print keys
+from util import *
+
+dataset = Load_ADM()
+train_X, train_Y, val_X, val_Y, test_X, test_Y = train_val_test_split(data_set)
 ```
 
 
