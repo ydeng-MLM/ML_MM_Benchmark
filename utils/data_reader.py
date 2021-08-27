@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 import torch
 TEST_SET_DIR = '/scratch/sr365/ML_MM_Benchmark/testsets'
 
-def get_data_into_loaders(data_x, data_y, batch_size, DataSetClass, rand_seed=42, test_ratio=0.3):
+def get_data_into_loaders(data_x, data_y, batch_size, DataSetClass, rand_seed=0, test_ratio=0.3):
     """
     Helper function that takes structured data_x and data_y into dataloaders
     :param data_x: the structured x data
@@ -84,22 +84,18 @@ def read_data_color_filter(flags, eval_data_all=False):
     data_dir = os.path.join(flags.data_dir, 'Color')
     data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None).astype('float32').values
     data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None).astype('float32').values
-    # Getting the max min of the dataset
-    data_x, x_max, x_min = normalize_np(data_x)
 
     # This is to for the last test dataset
     if eval_data_all:
         data_dir = os.path.join(TEST_SET_DIR, 'Color')
         data_x = pd.read_csv(os.path.join(data_dir, 'test_x.csv'), header=None).astype('float32').values
         data_y = pd.read_csv(os.path.join(data_dir, 'test_y.csv'), header=None).astype('float32').values
-        print('This is Color dataset with data_x shape of', np.shape(data_x))
-        data_x, _, _, = normalize_np(data_x, x_max, x_min)
-        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=1)
+        return get_data_into_loaders(data_x, data_y, flags.batch_size,  SimulatedDataSet_regress, rand_seed=flags.rand_seed,test_ratio=1)
 
     print("shape of data_x", np.shape(data_x))
     print("shape of data_y", np.shape(data_y))
 
-    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=flags.test_ratio)
+    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed=flags.rand_seed, test_ratio=flags.test_ratio)
 
 
 def read_data_Yang(flags, eval_data_all=False):
@@ -113,18 +109,22 @@ def read_data_Yang(flags, eval_data_all=False):
     data_dir = os.path.join(flags.data_dir, 'Yang')
     data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None).astype('float32').values
     data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None).astype('float32').values
+    # Normalize the dataset
+    data_x, x_max, x_min = normalize_np(data_x)
+
     # This is to for the last test dataset
     if eval_data_all:
         data_dir = os.path.join(TEST_SET_DIR, 'Yang')
         data_x = pd.read_csv(os.path.join(data_dir, 'test_x.csv'), header=None).astype('float32').values
         data_y = pd.read_csv(os.path.join(data_dir, 'test_y.csv'), header=None).astype('float32').values
+        data_x, _, _, = normalize_np(data_x, x_max, x_min)
         print('This is Yang dataset with data_x shape of', np.shape(data_x))
-        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=1)
+        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed=flags.rand_seed, test_ratio=1)
 
     print("shape of data_x", np.shape(data_x))
     print("shape of data_y", np.shape(data_y))
     
-    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=flags.test_ratio)
+    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed=flags.rand_seed, test_ratio=flags.test_ratio)
 
 def read_data_peurifoy(flags, eval_data_all=False):
     """
@@ -144,7 +144,7 @@ def read_data_peurifoy(flags, eval_data_all=False):
         data_y = pd.read_csv(os.path.join(data_dir, 'test_y.csv'), header=None).astype('float32').values
         data_x = (data_x - 50) / 20.
         print('This is Perifoy dataset with data_x shape of', np.shape(data_x))
-        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=1)
+        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed=flags.rand_seed,test_ratio=1)
 
 
     # The geometric boundary of peurifoy dataset is [30, 70], normalizing manually
@@ -153,7 +153,7 @@ def read_data_peurifoy(flags, eval_data_all=False):
     print("shape of data_x", np.shape(data_x))
     print("shape of data_y", np.shape(data_y))
 
-    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=flags.test_ratio)
+    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed=flags.rand_seed, test_ratio=flags.test_ratio)
 
 def read_data(flags, eval_data_all=False):
     """
@@ -170,11 +170,11 @@ def read_data(flags, eval_data_all=False):
     :return:
     """
     print("In read_data, flags.data_set =", flags.data_set)
-    if flags.data_set == 'Yang':
+    if 'Yang' in flags.data_set or 'ADM' in flags.data_set:
         train_loader, test_loader = read_data_Yang(flags,eval_data_all=eval_data_all)
-    elif flags.data_set == 'Peurifoy':
+    elif 'Peurifoy' in  flags.data_set :
         train_loader, test_loader = read_data_peurifoy(flags,eval_data_all=eval_data_all)
-    elif flags.data_set == 'Color':
+    elif 'olor' in flags.data_set:
         train_loader, test_loader =read_data_color_filter(flags,eval_data_all=eval_data_all)
     else:
         sys.exit("Your flags.data_set entry is not correct, check again!")

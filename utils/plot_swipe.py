@@ -5,15 +5,18 @@ import os
 from utils.helper_functions import load_flags
 
 
-def auto_swipe():
+def auto_swipe(mother_dir=None):
     """
     This function swipes the parameter space of a folder and extract the varying hyper-parameters and make 2d heatmap w.r.t. all combinations of them
     """
-    #mother_dir = '/scratch/sr365/ML_MM_Benchmark/Yang_temp/models/sweep8'
-    mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/sweep_encode_reg'
-    #mother_dir = '/scratch/sr365/ML_MM_Benchmark/Color_temp/models'
-    #mother_dir = '/scratch/sr365/ML_MM_Benchmark/Color_temp/prev_sweep/test_size'
-    #mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/sweep_encode_lr'
+    if mother_dir is None:
+        #mother_dir = '/scratch/sr365/ML_MM_Benchmark/Yang_temp/models/sweep8'
+        mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/Yang_new_sweep/'
+        #mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/Color_new_sweep/'
+        #mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/encoder_pos_analysis/Color'
+        #mother_dir = '/scratch/sr365/ML_MM_Benchmark/Color_temp/models'
+        #mother_dir = '/scratch/sr365/ML_MM_Benchmark/Color_temp/prev_sweep/test_size'
+        #mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/sweep_encode_lr'
     flags_list = []
 
     # First step, get the list of object flags
@@ -28,7 +31,7 @@ def auto_swipe():
         flags_list.append(cur_flags)
 
     # From the list of flags, get the things that are different except for loss terms
-    att_list = [a for a in dir(cur_flags) if not a.startswith('_') and not 'loss' in a and not 'trainable_param' in a and not 'model_name' in a]
+    att_list = [a for a in dir(cur_flags) if not a.startswith('_') and not 'loss' in a and not 'trainable_param' in a and not 'model_name' in a and not 'dir' in a]
     print('In total {} attributes, they are {}'.format(len(att_list), att_list))
 
     # Create a dictionary that have keys as attributes and unique values as that 
@@ -37,7 +40,11 @@ def auto_swipe():
     # Loop over all the flags and get the unique values inside
     for flags in flags_list:
         for keys in attDict.keys():
-            att = getattr(flags,keys)
+            try:
+                att = getattr(flags,keys)
+            except:
+                print('There is not attribute {} in flags, continue'.format(keys))
+                continue
             # Skip if this is already inside the list
             if att in attDict[keys]:
                 continue
@@ -83,11 +90,13 @@ def auto_swipe():
         key_a = att
         key_b = 'lr'
         for heatmap_value in ['best_validation_loss', 'best_training_loss','trainable_param']:
-            try:
-                plotsAnalysis.HeatMapBVL(key_a, key_b, key_a + '_' + key_b + '_HeatMap',save_name=mother_dir + '_' + key_a + '_' + key_b + '_' + heatmap_value +  '_heatmap.png',
-                                    HeatMap_dir=mother_dir,feature_1_name=key_a,feature_2_name=key_b, heat_value_name=heatmap_value)
-            except:
-                 print('the plotswipe does not work in {} and {} cross for {}'.format(key_a, key_b, heatmap_value))
+            #try:
+            print('doing heatmap {}'.format(heatmap_value))
+            plotsAnalysis.HeatMapBVL(key_a, key_b, key_a + '_' + key_b + '_HeatMap',save_name=mother_dir + '_' + key_a + '_' + key_b + '_' + heatmap_value +  '_heatmap.png',
+                                HeatMap_dir=mother_dir,feature_1_name=key_a,feature_2_name=key_b, heat_value_name=heatmap_value)
+            #except Exception as e:
+            #     print('the plotswipe does not work in {} and {} cross for {}'.format(key_a, key_b, heatmap_value))
+            #     print('error message: {}'.format(e))
             
     # Start calling the plotsAnalysis function for all the pairs
     for a, key_a in enumerate(varying_att_list):
@@ -98,6 +107,7 @@ def auto_swipe():
             # Call the plotsAnalysis function
             #for heatmap_value in ['best_validation_loss']:
             for heatmap_value in ['best_validation_loss', 'best_training_loss','trainable_param']:
+                print('doing heatmap {}'.format(heatmap_value))
                 try:
                     plotsAnalysis.HeatMapBVL(key_a, key_b, key_a + '_' + key_b + '_HeatMap',save_name=mother_dir + '_' + key_a + '_' + key_b + '_' + heatmap_value +  '_heatmap.png',
                                         HeatMap_dir=mother_dir,feature_1_name=key_a,feature_2_name=key_b, heat_value_name=heatmap_value)
@@ -106,8 +116,17 @@ def auto_swipe():
 
 
 if __name__ == '__main__':
-    pathnamelist = ['/scratch/sr365/ML_MM_Benchmark/Yang_temp/models/sweep4',
-                    '/scratch/sr365/ML_MM_Benchmark/Transformer/models/sweep4']#,
+    #pathnamelist = ['/scratch/sr365/ML_MM_Benchmark/Yang_temp/models/sweep4',
+    #                '/scratch/sr365/ML_MM_Benchmark/Transformer/models/sweep4']#,
     #'/scratch/sr365/ML_MM_Benchmark/Color_temp/models/sweep2']
                     #'/scratch/sr365/ML_MM_Benchmark/Yang_temp/models/lr_sweep']
-    auto_swipe()
+    
+    #big_mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/encoder'
+    #big_mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/sequence_len'
+    big_mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/MLP_complexity/'
+    for dirs in os.listdir(big_mother_dir):
+        mother_dir = os.path.join(big_mother_dir, dirs)
+        if os.path.isdir(mother_dir):
+            auto_swipe(mother_dir)
+
+    #auto_swipe()

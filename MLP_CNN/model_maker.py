@@ -19,7 +19,11 @@ class Forward(nn.Module):
     def __init__(self, flags, fre_low=0.8, fre_high=1.5):
         super(Forward, self).__init__()
 
-        self.skip_connection = flags.skip_connection
+        try:
+            self.skip_connection = flags.skip_connection
+        except:
+            print("This is older version of code there is no skip flag")
+            self.skip_connection = False
         self.use_conv = flags.use_conv
         if flags.dropout > 0:
             self.dp = True

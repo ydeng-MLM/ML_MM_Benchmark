@@ -7,7 +7,6 @@ import os
 import pandas as pd
 import numpy as np
 import sys
-sys.path.insert(0, '/scratch/yd105/ML_MM_Benchmark')
 # Torch
 
 # Own
@@ -15,7 +14,24 @@ import flag_reader
 from utils import data_reader
 from class_wrapper import Network
 from model_maker import Forward
-from utils.helper_functions import put_param_into_folder, write_flags_and_BVE
+from utils.helper_functions import put_param_into_folder, write_flags_and_BVE, load_flags
+
+def save_data_x():
+    """
+    This is a debugging chunk of code for looking at the train/test loader data x distribution
+    to explain the possible training difference
+    """
+    data_set_list = ['Color']
+    #data_set_list = ['Color', 'Yang', 'Peurifoy']
+    for eval_model in data_set_list:
+        flags = load_flags(os.path.join("models/best_models", eval_model))
+        flags.data_dir = '/scratch/sr365/ML_MM_Benchmark/Data'
+        train_loader, test_loader = data_reader.read_data(flags)
+        
+        with open('data_x_output.out','a') as fx:
+            for (x,y) in train_loader:
+                np.savetxt(fx, x.data.numpy(), fmt='%.5f')
+            
 
 
 def training_from_flag(flags):
@@ -47,9 +63,25 @@ def training_from_flag(flags):
     ntwk.train()
 
     # Do the house keeping, write the parameters and put into folder, also use pickle to save the flags obejct
-    write_flags_and_BVE(flags, ntwk.best_validation_loss, ntwk.ckpt_dir)
+    write_flags_and_BVE(flags, ntwk)
     # put_param_into_folder(ntwk.ckpt_dir)
 
+def retrain_different_dataset(index):
+     """
+     This function is to evaluate all different datasets in the model with one function call
+     """
+     data_set_list = ['Color']
+     #data_set_list = ['Color', 'Yang', 'Peurifoy']
+     for eval_model in data_set_list:
+        flags = load_flags(os.path.join("models/best_models", eval_model))
+        flags.data_dir = '/scratch/sr365/ML_MM_Benchmark/Data'
+        flags.model_name = "retrain_"+ str(index) + eval_model
+        #flags.optim = 'SGD'
+        #flags.model_name = "retrain_SGD_"+ str(index) + eval_model
+        #flags.test_ratio = 0.2
+        training_from_flag(flags)
+     
+     #num_encoder_layer_list = [4, 8, 12]
 def importData(flags):
     # pull data into python, should be either for training set or eval set
     directory = os.path.join(flags.data_dir, 'Yang', 'dataIn')
@@ -95,9 +127,14 @@ def data_check():
 
 if __name__ == '__main__':
     # Read the parameters to be set
-    flags = flag_reader.read_flag()
+    #flags = flag_reader.read_flag()
     # Call the train from flag function
-    training_from_flag(flags)
+    #training_from_flag(flags)
+    #for i in range(5):
+    #    retrain_different_dataset(i)
+    retrain_different_dataset(3)
+    
+    #save_data_x()
 
 
 

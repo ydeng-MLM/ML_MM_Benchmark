@@ -35,6 +35,7 @@ def read_flag():
     parser.add_argument('--tail-linear', default=TAIL_LINEAR, type=list, help='the fully connected layers that is at the end (TAIL)')
     parser.add_argument('--sequence-length', default=SEQUENCE_LENGTH, type=int, help='the length of the geometry sequence')
     
+    parser.add_argument('--rand-seed', default=RAND_SEED, type=str, help='the random seed to use')
     # Optimizer specific parameter
     parser.add_argument('--optim', default=OPTIM, type=str, help='the type of optimizer that you want to use')
     parser.add_argument('--reg-scale', type=float, default=REG_SCALE, help='#scale for regularization of dense layers')

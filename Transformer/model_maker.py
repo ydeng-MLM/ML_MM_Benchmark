@@ -28,7 +28,7 @@ class Transformer(nn.Module):
         # into a sequnced problem for transformer             #
         #######################################################
         # Method #1: The 1x1 convolution module to make more channel from Geometry
-        self.conv1d_layer = nn.Conv1d(in_channels=1, out_channels=flags.feature_channel_num, kernel_size=1)
+        #self.conv1d_layer = nn.Conv1d(in_channels=1, out_channels=flags.feature_channel_num, kernel_size=1)
 
         # Method #2: The slicing method  (A sequence length of 1 means this method is not activated)
         if not flags.head_linear:       # If we are not using the method 3 MLP, this assertion should hold
