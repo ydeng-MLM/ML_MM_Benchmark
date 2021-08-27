@@ -4,7 +4,7 @@ This repository stores implemention of paper [Benchmarking Data-driven Surrogate
 It includes a suit of ADM data set benchmarks along with implementation of various ready-to-use deep learning architectures (MLP, Transformer, MLP-Mixer) for scientific computation problem and a handful of utility functions.
 
 ## Data Sets
-![geometry_illustration](./geometry_illustration)
+![geometry_illustration](./geometry_illustration.png)
 [TO ADD DESCRIPTION]
 
 ## Requirements
