@@ -16,24 +16,6 @@ from class_wrapper import Network
 from model_maker import Forward
 from utils.helper_functions import put_param_into_folder, write_flags_and_BVE, load_flags
 
-def save_data_x():
-    """
-    This is a debugging chunk of code for looking at the train/test loader data x distribution
-    to explain the possible training difference
-    """
-    data_set_list = ['Color']
-    #data_set_list = ['Color', 'Yang', 'Peurifoy']
-    for eval_model in data_set_list:
-        flags = load_flags(os.path.join("models/best_models", eval_model))
-        flags.data_dir = '/scratch/sr365/ML_MM_Benchmark/Data'
-        train_loader, test_loader = data_reader.read_data(flags)
-        
-        with open('data_x_output.out','a') as fx:
-            for (x,y) in train_loader:
-                np.savetxt(fx, x.data.numpy(), fmt='%.5f')
-            
-
-
 def training_from_flag(flags):
     """
     Training interface. 1. Read data 2. initialize network 3. train network 4. record flags
@@ -46,11 +28,6 @@ def training_from_flag(flags):
     # Get the data
     train_loader, test_loader = data_reader.read_data(flags)
 
-    # Reset the boundary is normalized
-    if flags.normalize_input:
-        flags.geoboundary_norm = [-1, 1, -1, 1]
-
-    print("Boundary is set at:", flags.geoboundary)
     print("Making network now")
 
     # Make Network
@@ -64,7 +41,6 @@ def training_from_flag(flags):
 
     # Do the house keeping, write the parameters and put into folder, also use pickle to save the flags obejct
     write_flags_and_BVE(flags, ntwk)
-    # put_param_into_folder(ntwk.ckpt_dir)
 
 def retrain_different_dataset(index):
      """
@@ -76,12 +52,8 @@ def retrain_different_dataset(index):
         flags = load_flags(os.path.join("models/best_models", eval_model))
         flags.data_dir = '/scratch/sr365/ML_MM_Benchmark/Data'
         flags.model_name = "retrain_"+ str(index) + eval_model
-        #flags.optim = 'SGD'
-        #flags.model_name = "retrain_SGD_"+ str(index) + eval_model
-        #flags.test_ratio = 0.2
         training_from_flag(flags)
      
-     #num_encoder_layer_list = [4, 8, 12]
 def importData(flags):
     # pull data into python, should be either for training set or eval set
     directory = os.path.join(flags.data_dir, 'Yang', 'dataIn')
@@ -134,8 +106,6 @@ if __name__ == '__main__':
     #    retrain_different_dataset(i)
     retrain_different_dataset(3)
     
-    #save_data_x()
-
 
 
 

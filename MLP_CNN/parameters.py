@@ -40,7 +40,6 @@ Y_RANGE = [i for i in range(16, 2017)]  #60k dataset sepcific, 2001 spectrum poi
 
 FORCE_RUN = True
 DATA_DIR = '/scratch/yd105/ML_MM_Benchmark/datasets'        #Route for dataset directory
-GEOBOUNDARY =[0.3, 0.6, 1, 1.5, 0.1, 0.2, -0.7864, 0.7864]      #This is the specific geometry boundary for 60k dataset
 NORMALIZE_INPUT = True
 TEST_RATIO = 0.2
 RAND_SEED = 1

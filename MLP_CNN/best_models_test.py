@@ -30,11 +30,6 @@ def training_from_flag(flags):
     # Get the data
     train_loader, test_loader = data_reader.read_data(flags)
 
-    # Reset the boundary is normalized
-    if flags.normalize_input:
-        flags.geoboundary_norm = [-1, 1, -1, 1]
-
-    print("Boundary is set at:", flags.geoboundary)
     print("Making network now")
 
     # Make Network
