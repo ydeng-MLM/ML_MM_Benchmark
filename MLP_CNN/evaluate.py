@@ -33,6 +33,7 @@ def evaluate_from_model(model_dir):
     flags.eval_model = model_dir                    # Reset the eval mode
     #flags.x_range = [i for i in range(0, 14)]
     #flags.y_range = [i for i in range(14, 2014)]
+    flags.skip_connection = True
     flags.test_ratio = 0
 
 
