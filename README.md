@@ -32,11 +32,17 @@ visible runtime
 ## Results
 
 ### Performance of various DL structures on benchmark ADM data sets
-![performance_result](./performance_result.png)
+<img src="./performance_result.png" width=70% height=50%>
+
+
+<!-- ![performance_result](./performance_result.png) -->
 ### Effect of Hyper-parameters on Transformer's performance
-![Transformer_result](./Transformer_result.png)
+<img src="./Transformer_result.png" width=70% height=50%>
+<!-- ![Transformer_result](./Transformer_result.png) -->
+
 ### Effect of Hyper-parameters on MLP-Mixer's performance
-![MLP-Mixer_result](./MLP-Mixer_result.png)
+<img src="./MLP-Mixer_result.png" width=70% height=50%>
+<!-- ![MLP-Mixer_result](./MLP-Mixer_result.png) -->
 
 
 ## Usage
