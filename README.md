@@ -51,7 +51,7 @@ visible runtime
 
 ### Access to Data Sets
 1. ADM Data Set. Please download and unzip from the [Repository](https://doi.org/10.7924/r4jm2bv29).
-2. Particle Data Set. Please download and unzip from the [Repository](https://doi.org/10.7924/r4jm2bv29}).
+2. Particle Data Set. Please download and unzip from the [Repository](https://doi.org/10.7924/r4jm2bv29).
 3. Color Data Set. Please download and unzip from the [Repository](http://dx.doi.org/10.5258/SOTON/D1686).
 
 ### Download Pre-trained Models 
