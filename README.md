@@ -55,9 +55,9 @@ visible runtime
 3. Color Data Set. Please download and unzip from the [Repository](http://dx.doi.org/10.5258/SOTON/D1686).
 
 ### Download Pre-trained Models 
-1. MLP: Please download and unzip from the [website](https://www.atom3d.ai/).
-2. Transformer: Please download and unzip from the [website](https://www.atom3d.ai/).
-3. MLP-Mixer: Please download and unzip from the [website](https://www.atom3d.ai/).
+1. MLP: Please download and unzip from the [folder]().
+2. Transformer: Please download and unzip from the [folder]().
+3. MLP-Mixer: Please download and unzip from the [folder]().
 
 ### Loading and Spliting the Data Sets
 ```
@@ -88,10 +88,10 @@ sns.heatmap(heatmap)
 
 ## Support
 
-Please file an issue [here **(CHANGE LINK BEFORE SUBMISSION)**](https://github.com/drorlab/atom3d/issues).
+Please file an issue [here](https://github.com/ydeng-MLM/ML_MM_Benchmark/issues).
 
 ## License
 
-The project is licensed under the [MIT license](https://github.com/drorlab/atom3d/blob/master/LICENSE).
+The project is licensed under the [MIT license](https://github.com/ydeng-MLM/ML_MM_Benchmark/blob/main/LICENSE).
 
 Please cite this work if some of the code or datasets are helpful in your scientific endeavours. For specific datasets, please also cite the respective original source(s), given in the preprint.
