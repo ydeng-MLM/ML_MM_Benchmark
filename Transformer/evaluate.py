@@ -13,6 +13,7 @@ from utils import data_reader
 from utils import helper_functions
 from utils.evaluation_helper import plotMSELossDistrib
 from utils.evaluation_helper import get_test_ratio_helper
+from utils.helper_functions import load_flags
 
 
 def predict(model_dir, Ytruth_file ,multi_flag=False):
@@ -29,31 +30,19 @@ def predict(model_dir, Ytruth_file ,multi_flag=False):
         flags = helper_functions.load_flags(os.path.join("models", model_dir))
     flags.eval_model = model_dir                    # Reset the eval mode
     
+    # Create network from class wrapper 
     ntwk = Network(Transformer, flags, train_loader=None, test_loader=None, 
                     inference_mode=True, saved_model=flags.eval_model)
+    
+    # Get the total number of trainable parameters
     print("number of trainable parameters is :")
     pytorch_total_params = sum(p.numel() for p in ntwk.model.parameters() if p.requires_grad)
     print(pytorch_total_params)
+
     # Evaluation process
     pred_file, truth_file = ntwk.predict(Ytruth_file)
     if 'Yang' not in flags.data_set:
         plotMSELossDistrib(pred_file, truth_file, flags)
-
-
-def predict_different_dataset(multi_flag=False):
-    """
-    This function is to evaluate all different datasets in the model with one function call
-    """
-    step_func_dir = '/home/sr365/MM_Bench/Data/step_func'
-    for model in os.listdir('models/'):
-        if 'best' in model:
-            if 'Yang' in model:
-                Ytruth_file = os.path.join(step_func_dir, 'Yang'+'step_function.txt')
-            elif 'Chen' in model:
-                Ytruth_file = os.path.join(step_func_dir, 'Chen'+'step_function.txt')
-            elif 'Peurifoy' in model:
-                Ytruth_file = os.path.join(step_func_dir, 'Peurifoy'+'step_function.txt')
-            predict(model, Ytruth_file, multi_flag=multi_flag)
 
 
 def evaluate_from_model(model_dir):
@@ -106,6 +95,7 @@ def evaluate_different_dataset(multi_flag=False, eval_data_all=False, modulized_
     This function is to evaluate all different datasets in the model with one function call
     """
     for model in os.listdir('models/'):
+        # Only go through the best models chosen from your validation set error
         if 'best' in model:
             evaluate_from_model(model, multi_flag=multi_flag, 
                         eval_data_all=eval_data_all, modulized_flag=modulized_flag)
@@ -115,28 +105,5 @@ if __name__ == '__main__':
     useless_flags = flag_reader.read_flag()
 
     print(useless_flags.eval_model)
-    ##########################
-    #Single model evaluation #
-    ##########################
-    ### Call the evaluate function from model, this "evaluate_from_model" uses the eval_model field in your
-    ### "useless_flag" that reads out from your current parameters.py file in case you want to evaluate single model
-    #evaluate_from_model(useless_flags.eval_model)
-    #evaluate_from_model(useless_flags.eval_model, multi_flag=True)
-    #evaluate_from_model(useless_flags.eval_model, multi_flag=False, eval_data_all=True)
+    evaluate_inverse_from_model('best_models/Color')
     
-    #evaluate_from_model("models/Peurifoy_feature_channel_8_natthead_8_dim_fc_128")
-    
-    ############################
-    #Multiple model evaluation #
-    ############################
-    ### Call the "evaluate_different_dataset" function to evaluate all the models in the "models" folder, the multi_flag is to control whether evaulate across T or only do T=1 (if set to False), make sure you change the model name in function if you have any different model name 
-    #evaluate_different_dataset(multi_flag=False, eval_data_all=False)
-    #evaluate_different_dataset(multi_flag=True, eval_data_all=False)
-    #evaluate_different_dataset(multi_flag=True)
-    evaluate_all("models/best_models/")
-    #evaluate_all("models/Peurifoy_4th/")
-
-    ###########
-    # Predict #
-    ###########
-    #predict_different_dataset(multi_flag=False)

@@ -7,7 +7,6 @@ import os
 import pandas as pd
 import numpy as np
 import sys
-sys.path.insert(-1, '/scratch/yd105/ML_MM_Benchmark')
 # Torch
 
 # Own
@@ -15,8 +14,7 @@ import flag_reader
 from utils import data_reader
 from class_wrapper import Network
 from model_maker import Forward
-from utils.helper_functions import put_param_into_folder, write_flags_and_BVE
-
+from utils.helper_functions import put_param_into_folder, write_flags_and_BVE, load_flags
 
 def training_from_flag(flags):
     """
@@ -30,11 +28,6 @@ def training_from_flag(flags):
     # Get the data
     train_loader, test_loader = data_reader.read_data(flags)
 
-    # Reset the boundary is normalized
-    if flags.normalize_input:
-        flags.geoboundary_norm = [-1, 1, -1, 1]
-
-    print("Boundary is set at:", flags.geoboundary)
     print("Making network now")
 
     # Make Network
@@ -47,9 +40,20 @@ def training_from_flag(flags):
     ntwk.train()
 
     # Do the house keeping, write the parameters and put into folder, also use pickle to save the flags obejct
-    write_flags_and_BVE(flags, ntwk.best_validation_loss, ntwk.ckpt_dir)
-    # put_param_into_folder(ntwk.ckpt_dir)
+    write_flags_and_BVE(flags, ntwk)
 
+def retrain_different_dataset(index):
+     """
+     This function is to evaluate all different datasets in the model with one function call
+     """
+     data_set_list = ['Color']
+     #data_set_list = ['Color', 'Yang', 'Peurifoy']
+     for eval_model in data_set_list:
+        flags = load_flags(os.path.join("models/best_models", eval_model))
+        flags.data_dir = '/scratch/sr365/ML_MM_Benchmark/Data'
+        flags.model_name = "retrain_"+ str(index) + eval_model
+        training_from_flag(flags)
+     
 def importData(flags):
     # pull data into python, should be either for training set or eval set
     directory = os.path.join(flags.data_dir, 'Yang', 'dataIn')
@@ -95,10 +99,13 @@ def data_check():
 
 if __name__ == '__main__':
     # Read the parameters to be set
-    flags = flag_reader.read_flag()
+    #flags = flag_reader.read_flag()
     # Call the train from flag function
-    training_from_flag(flags)
-
+    #training_from_flag(flags)
+    #for i in range(5):
+    #    retrain_different_dataset(i)
+    retrain_different_dataset(3)
+    
 
 
 

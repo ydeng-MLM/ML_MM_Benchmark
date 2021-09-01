@@ -235,7 +235,8 @@ def HeatMapBVL(plot_x_name, plot_y_name, title,  save_name='HeatMap.png', HeatMa
                     HMpoint_list.append(HMpoint(float(df[heat_value_name][0]), eval(str(df[feature_1_name][0])), 
                                                 f1_name = feature_1_name))
                 else:
-                    if feature_2_name == 'linear_unit' or feature_1_name =='lienar_unit':                         # If comparing different linear units
+                    if feature_2_name == 'linear_unit' or feature_1_name =='linear_unit':                         # If comparing different linear units
+                        print('You are plotting versus linear unit')
                         # linear_unit has always need to be at the feature_2 and either from linear or linear_f,
                         # If you want to test for linear_b for Tandem, make sure you modify manually here
                         try:
@@ -262,8 +263,9 @@ def HeatMapBVL(plot_x_name, plot_y_name, title,  save_name='HeatMap.png', HeatMa
     df_aggregate = pd.concat(df_list, ignore_index = True, sort = False)
     df_aggregate = df_aggregate.astype({heat_value_name: 'float'})
 
-    #print("before transformation:", df_aggregate)
+    print("before transformation:", df_aggregate)
     [h, w] = df_aggregate.shape
+
     #print('df_aggregate has shape {}, {}'.format(h, w))
     # making the 2d ones with list to be the lenghth (num_layers)
     for i in range(h):
@@ -294,7 +296,7 @@ def HeatMapBVL(plot_x_name, plot_y_name, title,  save_name='HeatMap.png', HeatMa
     
     #print('type of last number of df_aggregate is', type(df_aggregate.iloc[-1, -1]))
     ########################################################################################################
-    df_aggregate.iloc[:, df.columns != heat_value_name] = df_aggregate.iloc[:, df.columns != heat_value_name].round(decimals=3)        
+    #df_aggregate.iloc[:, df.columns != heat_value_name] = df_aggregate.iloc[:, df.columns != heat_value_name].round(decimals=3)        
     ########################################################################################################
     #print("after transoformation:",df_aggregate)
     
@@ -327,14 +329,14 @@ def HeatMapBVL(plot_x_name, plot_y_name, title,  save_name='HeatMap.png', HeatMa
     else: #Or this is a 2 dimension HeatMap
         print("plotting 2 dimension HeatMap")
         #point_df = pd.DataFrame.from_records([point.to_dict() for point in HMpoint_list])
-        df_aggregate = df_aggregate.round(decimals=5)
+        df_aggregate = df_aggregate.round(decimals=9)
         df_aggregate = df_aggregate.reset_index()
         df_aggregate.sort_values(feature_1_name, axis=0, inplace=True)
         df_aggregate.sort_values(feature_2_name, axis=0, inplace=True)
         df_aggregate.sort_values(heat_value_name, axis=0, inplace=True)
-        #print("before dropping", df_aggregate)
+        print("before dropping", df_aggregate)
         df_aggregate = df_aggregate.drop_duplicates(subset=[feature_1_name, feature_2_name], keep='first')
-        #print("after dropping", df_aggregate)
+        print("after dropping", df_aggregate)
         point_df_pivot = df_aggregate.reset_index().pivot(index=feature_1_name, columns=feature_2_name, values=heat_value_name).astype(float)
         #point_df_pivot = point_df_pivot.rename({'5': '05'}, axis=1)
         # Trying to sort the indexs
@@ -350,6 +352,7 @@ def HeatMapBVL(plot_x_name, plot_y_name, title,  save_name='HeatMap.png', HeatMa
     plt.ylabel(plot_x_name)                 # Note that the pivot gives reversing labels
     plt.title(title)
     plt.savefig(save_name)
+    point_df_pivot.to_csv(save_name.replace('.png','.csv'))
 
 
 def PlotPossibleGeoSpace(figname, Xpred_dir, compare_original = False,calculate_diversity = None):

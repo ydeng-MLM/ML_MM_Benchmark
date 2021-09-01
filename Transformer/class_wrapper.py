@@ -48,14 +48,11 @@ class Network(object):
         Function to create the network module from provided model fn and flags
         :return: the created nn module
         """
-        # encoder = Encoder(self.flags)
-        # decoder = Decoder(self.flags)
-        # spec_enc = SpectraEncoder(self.flags)
         model = self.model_fn(self.flags)
         print(model)
         return model
 
-    def make_loss(self, logit=None, labels=None, z_log_var=None, z_mean=None):
+    def make_loss(self, logit=None, labels=None, G=None):
         """
         Create a tensor that represents the loss. This is consistant both at training time \
         and inference time for Backward model
@@ -66,8 +63,16 @@ class Network(object):
         :param z_mean: The z mean vector for VAE kl_loss
         :return: the total loss
         """
-        mse_loss = nn.functional.mse_loss(logit, labels, reduction='mean')          # The MSE Loss
-        return mse_loss
+        MSE_loss = nn.functional.mse_loss(logit, labels, reduction='mean')          # The MSE Loss
+        BDY_loss = 0
+        if G is not None:         # This is using the boundary loss
+            X_range, X_lower_bound, X_upper_bound = self.get_boundary_lower_bound_uper_bound()
+            X_mean = (X_lower_bound + X_upper_bound) / 2        # Get the mean
+            relu = torch.nn.ReLU()
+            BDY_loss_all = 1 * relu(torch.abs(G - self.build_tensor(X_mean)) - 0.5 * self.build_tensor(X_range))
+        self.MSE_loss = MSE_loss
+        self.Boundary_loss = BDY_loss
+        return torch.add(MSE_loss, BDY_loss)
 
     def make_optimizer(self):
         """
@@ -83,7 +88,7 @@ class Network(object):
         else:
             raise Exception("Your Optimizer is neither Adam, RMSprop or SGD, please change in param or contact Ben")
         return op
-
+    
     def make_lr_scheduler(self, optm):
         """
         Make the learning rate scheduler as instructed. More modes can be added to this, current supported ones:
@@ -114,6 +119,9 @@ class Network(object):
         self.model = torch.load(os.path.join(self.ckpt_dir, 'best_model_forward.pt'))
     
     def get_cuda_memory_info(self):
+        """
+        The function that gets the cuda memory to check for a memory problem
+        """
         r = torch.cuda.memory_reserved(0)/1e9
         a = torch.cuda.memory_allocated(0)/1e9
         print('after delete, reserved memory {}G, allocated memory {}G'.format(r,a))
@@ -150,10 +158,6 @@ class Network(object):
                 self.optm.step()                                    # Move one step the optimizer
                 train_loss += loss.cpu().data.numpy()                                  # Aggregate the loss
                 del S_pred, loss
-                ################ Debugging the memory cuda #################
-                print('in epoch {} test batch {}, lenghth is :'.format(epoch, j))
-                self.get_cuda_memory_info()
-                ################ Debugging the memory cuda #################
 
             # Calculate the avg loss of training
             train_avg_loss = train_loss / (j + 1)
@@ -173,20 +177,12 @@ class Network(object):
                     if cuda:
                         geometry = geometry.cuda()
                         spectra = spectra.cuda()
-                    ################ Debugging the memory cuda #################
-                    #print('in epoch {} test batch {}, lenghth is :'.format(epoch, j))
-                    #self.get_cuda_memory_info()
-                    ################ Debugging the memory cuda #################
 
 
                     S_pred = self.model(geometry)
                     loss = self.make_loss(logit=S_pred, labels=spectra)
-                    #print(loss.cpu().data.numpy())
                     test_loss += loss.cpu().data.numpy()                                       # Aggregate the loss
                     del loss, S_pred
-                    ################ Debugging the memory cuda #################
-                    #self.get_cuda_memory_info()
-                    ################ Debugging the memory cuda #################
 
                 # Record the testing loss to the tensorboard
                 test_avg_loss = test_loss/ (j+1)
@@ -239,53 +235,4 @@ class Network(object):
                 np.savetxt(fyt, spectra.cpu().data.numpy())
                 np.savetxt(fyp, Ypred)
         tk.record(1)                # Record the total time of the eval period
-        return Ypred_file, Ytruth_file
-    
-
-    def evaluate_multiple_time(self, time=200, save_dir='/home/sr365/mm_bench_multi_eval/VAE/'):
-        """
-        Make evaluation multiple time for deeper comparison for stochastic algorithms
-        :param save_dir: The directory to save the result
-        :return:
-        """
-        save_dir = os.path.join(save_dir, self.flags.data_set)
-        tk = time_keeper(os.path.join(save_dir, 'evaluation_time.txt'))
-        if not os.path.isdir(save_dir):
-            os.makedirs(save_dir)
-        for i in range(time):
-            self.evaluate(save_dir=save_dir, prefix='inference' + str(i))
-            tk.record(i)
-
-
-    def predict(self, Ytruth_file, save_dir='data/', prefix=''):
-        self.load()                             # load the model as constructed
-        cuda = True if torch.cuda.is_available() else False
-        if cuda:
-            self.model.cuda()
-        self.model.eval()
-        saved_model_str = self.saved_model.replace('/', '_') + prefix
-
-        Ytruth = pd.read_csv(Ytruth_file, header=None, delimiter=',')     # Read the input
-        if len(Ytruth.columns) == 1: # The file is not delimitered by ',' but ' '
-            Ytruth = pd.read_csv(Ytruth_file, header=None, delimiter=' ')
-        Ytruth_tensor = torch.from_numpy(Ytruth.values).to(torch.float)
-        print('shape of Ytruth tensor :', Ytruth_tensor.shape)
-
-        # Get the file names
-        Ypred_file = os.path.join(save_dir, 'test_Ypred_{}.csv'.format(saved_model_str))
-        Ytruth_file = os.path.join(save_dir, 'test_Ytruth_{}.csv'.format(saved_model_str))
-        Xpred_file = os.path.join(save_dir, 'test_Xpred_{}.csv'.format(saved_model_str))
-        # keep time
-        tk = time_keeper(os.path.join(save_dir, 'evaluation_time.txt'))
-    
-        if cuda:
-            Ytruth_tensor = Ytruth_tensor.cuda()
-        print('model in eval:', self.model)
-        Xpred = self.model.inference(Ytruth_tensor).cpu().data.numpy()
-
-        # Open those files to append
-        with open(Ytruth_file, 'a') as fyt, open(Ypred_file, 'a') as fyp, open(Xpred_file, 'a') as fxp:
-            np.savetxt(fyt, Ytruth_tensor.cpu().data.numpy())
-            np.savetxt(fxp, Xpred)
-        tk.record(1)
         return Ypred_file, Ytruth_file

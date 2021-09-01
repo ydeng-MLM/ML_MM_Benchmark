@@ -172,7 +172,10 @@ def write_flags_and_BVE(flags, ntwk, forward_best_loss=None):
     :param forard_best_loss: The forward best loss only applicable for Tandem model
     """
     flags.best_validation_loss = ntwk.best_validation_loss 
-    flags.best_training_loss = ntwk.best_training_loss  
+    try:
+        flags.best_training_loss = ntwk.best_training_loss  
+    except:
+        print("There is no training loss, this is an older version of the coder")
     if forward_best_loss is not None:
         flags.best_forward_validation_loss = forward_best_loss
     copy_flags = deepcopy(flags)

@@ -14,6 +14,21 @@ from utils import data_reader
 from class_wrapper import Network
 from model_maker import Transformer
 from utils.helper_functions import put_param_into_folder,write_flags_and_BVE
+from utils.helper_functions import load_flags
+from prettytable import PrettyTable
+
+def get_num_param_for_all_layer(model):
+
+    table = PrettyTable(["Modules", "Parameters"])
+    total_params = 0
+    for name, parameter in model.named_parameters():
+        if not parameter.requires_grad: continue
+        param = parameter.numel()
+        table.add_row([name, param])
+        total_params+=param
+    print(table)
+    print(f"Total Trainable Params: {total_params}")
+    return total_params
 
 def training_from_flag(flags):
     """
@@ -32,6 +47,7 @@ def training_from_flag(flags):
     pytorch_total_params = sum(p.numel() for p in ntwk.model.parameters() if p.requires_grad)
     print("number of trainable parameters is : ", pytorch_total_params)
     flags.trainable_param = pytorch_total_params
+    get_num_param_for_all_layer(ntwk.model)
     
     # Training process
     print("Start training now...")
@@ -46,37 +62,66 @@ def retrain_different_dataset(index):
      """
      This function is to evaluate all different datasets in the model with one function call
      """
-     from utils.helper_functions import load_flags
-     data_set_list = ["robotic_arm", "sine_wave", "ballistics", "meta_material"]
+     data_set_list = ['Color']
+     #data_set_list = ['Color', 'Yang', 'Peurifoy']
+     #num_encoder_layer_list = [14]
      for eval_model in data_set_list:
-        flags = load_flags(os.path.join("models", eval_model))
-        flags.model_name = "retrain"+ str(index) + eval_model
-        flags.geoboundary = [-1,1,-1,1]
-        flags.batch_size = 1024
-        flags.train_step = 500
+        flags = load_flags(os.path.join("models/best_models", eval_model))
+        #flags.model_name = "retrain_SGD"+ str(index) + eval_model
+        flags.model_name = 'retrain_' +  str(index) + eval_model
         flags.test_ratio = 0.2
+        flags.rand_seed = 0
+        #flags.optim = 'SGD'
         training_from_flag(flags)
+     
+     #num_encoder_layer_list = [4, 8, 12]
+     #for eval_model in data_set_list:
+     #   for nel in num_encoder_layer_list:
+     #       flags = load_flags(os.path.join("models/best_models", eval_model))
+     #       flags.data_dir = '/hpc/home/sr365/ML_MM_Benchmark/Data'
+     #       flags.test_ratio = 0.2
+     #       flags.train_step = 2
+     #       flags.num_encoder_layer = nel
+     #       flags.model_name = "retrain_trail_" +str(index) + "_encoder_layer_num"+ str(flags.num_encoder_layer) + eval_model
+     #       #flags.model_name = "retrain_"+ str(index) + eval_model
+     #       training_from_flag(flags)
+
+def retrain_enc_position_sweep(i, j):
+    #for i in range(8):
+    #    for j in range(i, 8):
+    eval_model = 'Yang'
+    if i + j > 8:
+        print('i+j larger than expected, abort')
+        quit()
+        #continue
+    flags = load_flags(os.path.join("models/best_models", eval_model))
+    flags.data_dir = '/hpc/home/sr365/ML_MM_Benchmark/Data'
+    flags.head_linear = [flags.dim_G] + [500 for k in range(i)] + [flags.sequence_length * flags.feature_channel_num]
+    flags.tail_linear = [500 for k in range(j)] + [flags.dim_S]
+    flags.model_name = "retrain_encoder_pos_sweep_head" +str(i) + "_tail_"+ str(j) + eval_model
+    #flags.model_name = "retrain_"+ str(index) + eval_model
+    training_from_flag(flags)
+
 
 def hyperswipe():
     """
     This is for doing hyperswiping for the model parameters
     """
-    # reg_scale_list = [1e-4]
-    feature_channel_num_list = [64]
-    #feature_channel_num_list = [64,128]
+    feature_channel_num_list = [128]
+    #feature_channel_num_list = [16, 32, 64, 128]
     nhead_encoder_list = [8]
     dim_fc_encoder_list = [32] 
-    head_fc_layer_num_list = [10]
+    #dim_fc_encoder_list = [32, 64] 
+    head_fc_layer_num_list = [0, 2, 4]
     head_layer_node_num_list = [500]
-    tail_fc_layer_num_list = [0]
+    tail_fc_layer_num_list = [0, 2, 4]
     tail_layer_node_num_list = [500]
-    num_encoder_layer_list = [8]
-    sequence_len_list = [32]
+    num_encoder_layer_list = [4, 8]
+    sequence_len_list = [8, 16]
     lr_list = [2e-4]
-    #lr_list = [1e-4, 2e-4]
-    reg_scale_list = [1e-4]
-    decay_list = [0.3]
-    trail_num = 0 
+    reg_scale_list = [5e-4]
+    decay_list = [0.2]
+    trail_num = 1 
     for feature_channel_num in feature_channel_num_list:
         for nhead_encoder in nhead_encoder_list:
             for dim_fc_encoder in dim_fc_encoder_list:
@@ -159,15 +204,17 @@ if __name__ == '__main__':
     # Read the parameters to be set
     flags = flag_reader.read_flag()
 
-    hyperswipe()
+    #hyperswipe()
     #hyperswipe_lr_decay()
     #hyperswipe_lr_warm_restart()
     # Call the train from flag function
+    #retrain_enc_position_sweep(0, 6)
+    #retrain_enc_position_sweep(0, 7)
     #training_from_flag(flags)
 
     # Do the retraining for all the data set to get the training 
     #for i in range(10):
-    #    retrain_different_dataset(i)
+    retrain_different_dataset('0826_new_norm')
 
 
 
