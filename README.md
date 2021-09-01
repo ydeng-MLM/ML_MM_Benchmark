@@ -73,6 +73,7 @@ from models import DukeTransformer, DukeMIXER
 model_transformer = DukeTransformer(...)
 model_mixer = DukeMIXER(...)
 
+model_transformer.train(train_X, train_Y, epochs = .., lr = ..)
 model_transformer(test_X)
 model_mixer(test_X)
 ```
