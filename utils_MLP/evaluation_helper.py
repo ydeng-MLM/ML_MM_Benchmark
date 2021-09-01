@@ -96,6 +96,8 @@ def plotMSELossDistrib(pred_file, truth_file, flags=None, save_dir='data/'):
             eval_model_str = 'MSE_unknon_name'
     plt.savefig(os.path.join(save_dir,
                             '{}.png'.format(eval_model_str)))
+    
+    np.savetxt(os.path.join(save_dir, '{}_mse.csv'.format(eval_model_str)), mse, delimiter=',')
     print('(Avg MSE={:.4e})'.format(np.mean(mse)))
     return np.mean(mse)
 
