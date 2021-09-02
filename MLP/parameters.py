@@ -2,14 +2,14 @@
 Parameter file for specifying the running parameters for forward model
 """
 #DATA_SET = 'ADM'
-DATA_SET = 'Peurifoy'
-#DATA_SET = 'color'
+#DATA_SET = 'Peurifoy'
+DATA_SET = 'color'
 
 SKIP_CONNECTION = False
 USE_CONV = False
-CONV_OUT_CHANNEL = []
-CONV_KERNEL_SIZE = []
-CONV_STRIDE = []
+CONV_OUT_CHANNEL = [4, 4, 4, 4]
+CONV_KERNEL_SIZE = [16, 16, 33, 33]
+CONV_STRIDE = [2, 2, 1, 1]
 #ADM
 #LINEAR = [14, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2001]
 #Nanophotonics particles
@@ -17,13 +17,15 @@ CONV_STRIDE = []
 #color
 #LINEAR = [3, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 3]      
 
-LINEAR = [8, 250, 250, 250, 250, 201]
+LINEAR = [3, 250, 250, 250, 250, 250, 250, 250, 3]
+#LINEAR = [8, 250, 250, 250, 250, 201]
+#LINEAR = [14, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 500]
 
 # Hyperparameters
 OPTIM = "Adam"
 #For Nanophotnics particles
 #REG_SCLAE = 1e-3
-REG_SCALE = 1e-3
+REG_SCALE = 1e-4
 BATCH_SIZE = 1024
 EVAL_STEP = 20
 TRAIN_STEP = 500
@@ -40,6 +42,7 @@ Y_RANGE = [i for i in range(16, 2017)]  #60k dataset sepcific, 2001 spectrum poi
 
 FORCE_RUN = True
 DATA_DIR = '/scratch/yd105/ML_MM_Benchmark/datasets'        #Route for dataset directory
+GEOBOUNDARY =[0.3, 0.6, 1, 1.5, 0.1, 0.2, -0.7864, 0.7864]      #This is the specific geometry boundary for 60k dataset
 NORMALIZE_INPUT = True
 TEST_RATIO = 0.2
 RAND_SEED = 1
@@ -47,5 +50,5 @@ RAND_SEED = 1
 # Running specific
 USE_CPU_ONLY = False
 MODEL_NAME  = None
-EVAL_MODEL = "Peurifoy_best_0"
+EVAL_MODEL = "ADM_paper"
 NUM_COM_PLOT_TENSORBOARD = 1

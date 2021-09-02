@@ -52,6 +52,7 @@ def read_flag():
 
 
     # Data specific Params
+    parser.add_argument('--geoboundary', default=GEOBOUNDARY, type=tuple, help='the boundary of the geometric data')
     parser.add_argument('--data-dir', default=DATA_DIR, type=str, help='data directory')
     parser.add_argument('--normalize-input', default=NORMALIZE_INPUT, type=bool,
                         help='whether we should normalize the input or not')

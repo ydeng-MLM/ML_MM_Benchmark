@@ -62,6 +62,7 @@ def read_data_ADM(flags, eval_data_all=False):
         test_x = normalize_np(test_x)
         print("shape of test_x", np.shape(test_x))
         print("shape of test_y", np.shape(test_y))
+        test_y = test_y[:,:2000]
 
         return get_data_into_loaders(test_x, test_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
 
@@ -73,8 +74,9 @@ def read_data_ADM(flags, eval_data_all=False):
     # The geometric boundary of peurifoy dataset is [30, 70], normalizing manually
     data_x = normalize_np(data_x)
     print("shape of data_x", np.shape(data_x))
+    data_y = data_y[:,:2000]
     print("shape of data_y", np.shape(data_y))
-    
+   
     if eval_data_all:
         return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
 

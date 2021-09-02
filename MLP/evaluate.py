@@ -6,6 +6,7 @@ import os
 import sys
 sys.path.insert(0, '/scratch/yd105/ML_MM_Benchmark')
 #Torch
+import numpy as np
 
 # Own
 import flag_reader
