@@ -75,21 +75,25 @@ train_X, train_Y, val_X, val_Y, test_X, test_Y = train_val_test_split(data_set)
 
 ### Loading Models with configurable hyper-paramters and making prediction
 ```
-from models import DukeTransformer, DukeMIXER
+from models.Mixer import DukeMIXER
+from models.MLP import DukeMLP
+from models.Transformer import DukeTransformer
+
 model_transformer = DukeTransformer(...)
+model_mlp = DukeMLP(...)
 model_mixer = DukeMIXER(...)
 
 model_transformer.train(train_X, train_Y, epochs = .., lr = ..)
 model_transformer(test_X)
-model_mixer(test_X)
 ```
+
 ### Building heatmap and Plotting
 ```
 import seaborn as sns
-from models import DukeTransformer
-from sweep import sweep
-result = sweep(DukeTransformer, sweep_dict)
-heatmap = build_heatmap(result)
+from models.Mixer import DukeMIXER, sweep_mixer, build_heatmap_mixer
+
+result = sweep_mixer(DukeMIXER, sweep_dict)
+heatmap = build_heatmap_mixer(result)
 sns.heatmap(heatmap)
 ```
 
