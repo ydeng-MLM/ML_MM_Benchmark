@@ -126,7 +126,7 @@ class Network(object):
         a = torch.cuda.memory_allocated(0)/1e9
         print('after delete, reserved memory {}G, allocated memory {}G'.format(r,a))
 
-    def train(self):
+    def train(self, train_X=None, train_Y=None, epochs=None, lr=None, batch_size=None):
         """
         The major training function. This would start the training using information given in the flags
         :return: None
@@ -142,6 +142,18 @@ class Network(object):
 
         # Time keeping
         tk = time_keeper(time_keeping_file=os.path.join(self.ckpt_dir, 'training time.txt'))
+        
+        ########################################################################
+        # The extra code that if the caller wants to train from outside source #
+        ########################################################################
+        if batch_size is not None:
+            self.flags.batch_size = batch_size
+        if epochs is not None:
+            self.flags.train_step =  epochs
+        if lr is not None:
+            self.flags.lr = lr
+        if train_X is not None and train_Y is not None:
+            self.flags.train_loader = torch.utils.data.DataLoader(SimulatedDataSet_regress(train_X, train_Y), batch_size=self.flags.batch_size)
 
         for epoch in range(self.flags.train_step):
             # Set to Training Mode
@@ -205,6 +217,24 @@ class Network(object):
             # Learning rate decay upon plateau
             self.lr_scheduler.step(train_avg_loss)
         tk.record(1)                # Record the total time of the training peroid
+    
+    def __call__(self, test_X):
+        """
+        This is to call this model to do testing, 
+        :param: test_X: The testing X to be input to the model
+        """
+        # Load the model first
+        self.load()
+        # put model to GPU if cuda available
+        cuda = True if torch.cuda.is_available() else False
+        if cuda:
+            self.model.cuda()
+            test_X = test_X.cuda()
+        # Make the model to eval mode
+        self.model.eval()
+        # output the Ypred
+        Ypred = self.model(test_X).cpu().data.numpy()
+        return Ypred
 
     def evaluate(self, save_dir='data/', prefix=''):
         self.load()                             # load the model as constructed

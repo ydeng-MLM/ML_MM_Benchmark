@@ -58,17 +58,30 @@ def training_from_flag(flags):
     # put_param_into_folder(ntwk.ckpt_dir)
 
 
+def retrain_from_model(model):
+    flags = load_flags(os.path.join("models/", model))
+    #flags.model_name = "retrain_SGD"+ str(index) + eval_model
+    flags.model_name = 'retrain_' +  model.replace('/','_')
+    flags.test_ratio = 0.2
+    flags.rand_seed = 0
+    training_from_flag(flags)
+     
 def retrain_different_dataset(index):
      """
      This function is to evaluate all different datasets in the model with one function call
      """
-     data_set_list = ['Color']
+     #data_set_list = ['new_norm_Color']
      #data_set_list = ['Color', 'Yang', 'Peurifoy']
+     data_set_list = ['Yang']
      #num_encoder_layer_list = [14]
      for eval_model in data_set_list:
         flags = load_flags(os.path.join("models/best_models", eval_model))
         #flags.model_name = "retrain_SGD"+ str(index) + eval_model
         flags.model_name = 'retrain_' +  str(index) + eval_model
+        if 'olor' in eval_model:
+            flags.train_step = 500
+        #flags.head_linear = [flags.dim_G] + [500 for k in range(9)] + [flags.sequence_length * flags.feature_channel_num]
+        #flags.tail_linear = [500 for k in range(0)] + [flags.dim_S]
         flags.test_ratio = 0.2
         flags.rand_seed = 0
         #flags.optim = 'SGD'
@@ -214,7 +227,11 @@ if __name__ == '__main__':
 
     # Do the retraining for all the data set to get the training 
     #for i in range(10):
-    retrain_different_dataset('0826_new_norm')
+    #retrain_different_dataset('best_color_retrain_2')
+    retrain_different_dataset(3)
+    #retrain_different_dataset('All_MLP_head_0')
+    
+    #retrain_from_model('ALL_MLP_tail/retrain_encoder_pos_sweep_head0_tail_8Yang')
 
 
 

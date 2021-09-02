@@ -11,7 +11,8 @@ def auto_swipe(mother_dir=None):
     """
     if mother_dir is None:
         #mother_dir = '/scratch/sr365/ML_MM_Benchmark/Yang_temp/models/sweep8'
-        mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/Yang_new_sweep/'
+        #mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/Yang_new_sweep/'
+        mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/new_norm_color/'
         #mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/Color_new_sweep/'
         #mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/encoder_pos_analysis/Color'
         #mother_dir = '/scratch/sr365/ML_MM_Benchmark/Color_temp/models'
@@ -123,10 +124,10 @@ if __name__ == '__main__':
     
     #big_mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/encoder'
     #big_mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/sequence_len'
-    big_mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/MLP_complexity/'
-    for dirs in os.listdir(big_mother_dir):
-        mother_dir = os.path.join(big_mother_dir, dirs)
-        if os.path.isdir(mother_dir):
-            auto_swipe(mother_dir)
+    #big_mother_dir = '/scratch/sr365/ML_MM_Benchmark/Transformer/models/MLP_complexity/'
+    #for dirs in os.listdir(big_mother_dir):
+    #    mother_dir = os.path.join(big_mother_dir, dirs)
+    #    if os.path.isdir(mother_dir):
+    #        auto_swipe(mother_dir)
 
-    #auto_swipe()
+    auto_swipe()

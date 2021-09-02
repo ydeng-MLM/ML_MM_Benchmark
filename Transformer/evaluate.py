@@ -12,7 +12,7 @@ from model_maker import Transformer
 from utils import data_reader
 from utils import helper_functions
 from utils.evaluation_helper import plotMSELossDistrib
-from utils.evaluation_helper import get_test_ratio_helper
+#from utils.evaluation_helper import get_test_ratio_helper
 from utils.helper_functions import load_flags
 
 
@@ -58,8 +58,9 @@ def evaluate_from_model(model_dir):
         print("after removing prefix models/, now model_dir is:", model_dir)
     flags = helper_functions.load_flags(os.path.join("models", model_dir))
     flags.eval_model = model_dir                    # Reset the eval mode
+    flags.rand_seed = 0
     
-    flags.test_ratio = get_test_ratio_helper(flags)
+    #flags.test_ratio = get_test_ratio_helper(flags)
     # Get the data
     train_loader, test_loader = data_reader.read_data(flags, eval_data_all=True)
     print("Making network now")
@@ -105,5 +106,26 @@ if __name__ == '__main__':
     useless_flags = flag_reader.read_flag()
 
     print(useless_flags.eval_model)
-    evaluate_inverse_from_model('best_models/Color')
+    """
+    # Peurifoy models
+    evaluate_from_model('ALL_MLP_head/Peurifoy_head_num_layer_8_tail_num_layer_0')
+    evaluate_from_model('no_MLP/Peurifoy_head_num_layer_0_tail_num_layer_0')
+    evaluate_from_model('ALL_MLP_tail/Peurifoy_head_num_layer_0_tail_num_layer_8')
+
+    # Color models
+    evaluate_from_model('ALL_MLP_tail/retrain_All_MLP_tail_2new_norm_Color')
+    evaluate_from_model('ALL_MLP_head/retrain_All_MLP_head_0new_norm_Color')
+    evaluate_from_model('no_MLP/retrain_no_MLP_2new_norm_Color')
+    """
+
+    
+    # Yang
+    #evaluate_from_model('no_MLP/retrain_no_MLP_retrain_encoder_pos_sweep_head0_tail_0Yang')
+    #evaluate_from_model('ALL_MLP_tail/retrain_ALL_MLP_tail_retrain_encoder_pos_sweep_head0_tail_8Yang')
+    #evaluate_from_model('ALL_MLP_head/retrain_ALL_MLP_head_retrain_encoder_pos_sweep_head8_tail_0Yang')
+
+    evaluate_from_model('retrain_2Yang')
+    
+    #evaluate_from_model('new_norm_color/best_model')
+    #evaluate_inverse_from_model('best_models/Color')
     
