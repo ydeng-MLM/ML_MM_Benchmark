@@ -59,11 +59,17 @@ visible runtime
 2. Transformer: Please download and unzip from the [folder]().
 3. MLP-Mixer: Please download and unzip from the [folder]().
 
-### Loading and Spliting the Data Sets
+### Install Package
 ```
-from util import *
+pip install AEM3
+```
 
-dataset = Load_ADM()
+### Loading data and Splitting
+```
+import AEM3
+from AEM3.data import ADM, Color, Particle, train_val_test_split
+
+dataset = ADM(...)
 train_X, train_Y, val_X, val_Y, test_X, test_Y = train_val_test_split(data_set)
 ```
 
