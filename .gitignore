@@ -34,3 +34,6 @@ datasets/
 
 # Scratch files for testing
 scratch.py
+
+# Do not ignore __init__.py files
+!__init__.py
