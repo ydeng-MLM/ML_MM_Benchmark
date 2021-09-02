@@ -1,11 +1,11 @@
-# Benchmarking ADM problems with various DL structures 
+# Benchmarking AEM problems with various DL structures 
 [![PyPi Version 0.0.2](https://img.shields.io/badge/pypi-0.0.2-brightgreen)](https://badge.fury.io/py/pypi)
 [![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/Naereen/StrapDown.js/blob/master/LICENSE)
 
 
 This repository stores implemention of paper [Benchmarking Data-driven Surrogate Simulators for Artificial Electromagnetic Materials]() 
 
-It includes a suit of ADM data set benchmarks along with implementation of various ready-to-use deep learning architectures (MLP, Transformer, MLP-Mixer) for scientific computation problem and a handful of utility functions.
+It includes a suit of AEM data set benchmarks along with implementation of various ready-to-use deep learning architectures (MLP, Transformer, MLP-Mixer) for scientific computation problem and a handful of utility functions.
 
 ## Data Sets
 ![geometry_illustration](./images/geometry_illustration.png)
