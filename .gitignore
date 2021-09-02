@@ -37,6 +37,7 @@ scratch.py
 
 # Do not ignore __init__.py files
 !__init__.py
+!data/
 
 #package distribution files
 dist/

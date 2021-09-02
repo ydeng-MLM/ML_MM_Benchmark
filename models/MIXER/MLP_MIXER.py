@@ -9,6 +9,8 @@ from torch.utils.data import DataLoader
 
 from einops.layers.torch import Rearrange
 
+from . import helper
+
 class FeedForward(nn.Module):
   '''
   FC -> GELU + DO -> FC 
@@ -143,8 +145,15 @@ class MonsterFB(nn.Module):
     '''
         OOP for the model that combines and Mixer and MLP layers
     '''
-    def __init__(self,input_dim,output_dim,mlp_dim,patch_size,mixer_layer_num,mlp_layer_num_front=3,mlp_layer_num_back=3,dropout=0.):
+    def __init__(self,input_dim,output_dim,mlp_dim,patch_size,mixer_layer_num,mlp_layer_num_front=3,mlp_layer_num_back=3,dropout=0.,device=None):
         super().__init__()
+
+        # GPU device
+        if not device:
+          self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        else:
+          self.device = device
+
         # MLP layers in front
         sequence1=[nn.Linear(input_dim,mlp_dim),nn.ReLU(),nn.Dropout(dropout)]
         for _ in range(mlp_layer_num_front-1):
@@ -184,3 +193,41 @@ class MonsterFB(nn.Module):
 
 
         return prediction
+
+    def train(self,X,Y,batch_size=128,criterion=None,lr=1e-4,epochs=300):
+      '''
+      Parameters: 
+      (1) X: torch tensor
+      (2) Y: torch tensor
+      '''
+      trainloader = torch.utils.data.DataLoader(helper.MyDataset(X,Y), batch_size=batch_size)
+
+      self.to(self.device)
+      optimizer = optim.Adam(self.parameters(), lr=lr)
+      if not criterion:
+        criterion = nn.MSELoss()
+
+      minvalloss = 1
+      trainlosses=[]
+      vallosses=[]
+      for _ in range(epochs):
+
+          self.train()
+          for data in trainloader:
+              x, y = data
+
+              optimizer.zero_grad()
+              predict = self.forward(x.to(self.device))
+              loss = criterion(predict,y.to(self.device))
+              loss.backward()
+
+              optimizer.step()
+          with torch.no_grad():
+              trainlosses.append(loss.item())
+              self.eval()
+              valloss = criterion(self.forward(valX.to(device)),valY.to(device)).item()
+              if valloss < minvalloss:
+                  minvalloss = valloss
+                  vallosses.append(valloss)
+
+      return trainlosses,vallosses
