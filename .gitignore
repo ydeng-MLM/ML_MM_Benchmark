@@ -32,3 +32,5 @@ datasets/
 *.tar
 *.gz
 
+# Scratch files for testing
+scratch.py
