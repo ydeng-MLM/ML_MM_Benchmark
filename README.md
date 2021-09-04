@@ -9,7 +9,7 @@ It includes a suit of AEM data set benchmarks along with implementation of vario
 
 ## Data Sets
 ![geometry_illustration](./images/geometry_illustration.png)
-[TO ADD DESCRIPTION]
+Schematics of geometry in three physical problems. (a) Infinite array of all-dielectric metasurfaces consists of four elliptical-resonators supercells. (b) A nanophotonic particle consists of four layers. (c) The three-layers color filter design.
 
 ## Requirements
 | Package | Version |
