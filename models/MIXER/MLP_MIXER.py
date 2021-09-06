@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 
 import torch
 import torch.nn as nn
@@ -145,7 +146,8 @@ class MonsterFB(nn.Module):
     '''
         OOP for the model that combines and Mixer and MLP layers
     '''
-    def __init__(self,input_dim,output_dim,mlp_dim,patch_size,mixer_layer_num,mlp_layer_num_front=3,mlp_layer_num_back=3,dropout=0.,device=None):
+    def __init__(self,input_dim,output_dim,mlp_dim,patch_size,mixer_layer_num, \
+                embed_dim=128, token_dim=128, channel_dim=256, mlp_layer_num_front=3,mlp_layer_num_back=3,dropout=0.,device=None):
         super().__init__()
 
         # GPU device
@@ -183,8 +185,8 @@ class MonsterFB(nn.Module):
 
         
         #the MLP-MIXER
-        self.mixer = MMixer(patch_size=patch_size,embed_dim=128,n_block=mixer_layer_num,
-        token_dim=128, channel_dim=256, input_dim=mlp_dim,output_dim=mlp_dim,expand=False)
+        self.mixer = MMixer(patch_size=patch_size,embed_dim=embed_dim,n_block=mixer_layer_num,
+        token_dim=token_dim, channel_dim=channel_dim, input_dim=mlp_dim,output_dim=mlp_dim,expand=False)
 
     def forward(self,x):
         x = self.MLP1(x)
@@ -194,13 +196,13 @@ class MonsterFB(nn.Module):
 
         return prediction
 
-    def train(self,X,Y,batch_size=128,criterion=None,lr=1e-4,epochs=300):
+    def train_with(self,trainX,trainY,valX,valY,batch_size=128,criterion=None,lr=1e-4,epochs=300):
       '''
       Parameters: 
       (1) X: torch tensor
       (2) Y: torch tensor
       '''
-      trainloader = torch.utils.data.DataLoader(helper.MyDataset(X,Y), batch_size=batch_size)
+      trainloader = torch.utils.data.DataLoader(helper.MyDataset(trainX,trainY), batch_size=batch_size)
 
       self.to(self.device)
       optimizer = optim.Adam(self.parameters(), lr=lr)
@@ -210,7 +212,7 @@ class MonsterFB(nn.Module):
       minvalloss = 1
       trainlosses=[]
       vallosses=[]
-      for _ in range(epochs):
+      for _ in tqdm(range(epochs)):
 
           self.train()
           for data in trainloader:
@@ -225,7 +227,7 @@ class MonsterFB(nn.Module):
           with torch.no_grad():
               trainlosses.append(loss.item())
               self.eval()
-              valloss = criterion(self.forward(valX.to(device)),valY.to(device)).item()
+              valloss = criterion(self.forward(valX.to(self.device)),valY.to(self.device)).item()
               if valloss < minvalloss:
                   minvalloss = valloss
                   vallosses.append(valloss)
