@@ -114,12 +114,12 @@ sns.heatmap(heatmap)
 ## Results
 
 ### Performance of various DL structures on benchmark ADM data sets
-<img src="./images/performance_result.png" width=70% height=50%>
+<img src="./images/Main_perf_plot.png" width=70% height=50%>
 
 
 <!-- ![performance_result](./performance_result.png) -->
 ### Relative size of our pre-trained networks
-<img src="./images/relative_size_verticle.png" width=70% height=50%>
+<img src="./images/relative_size_vertical.png" width=70% height=50%>
 <!-- ![Transformer_result](./Transformer_result.png) -->
 
 
