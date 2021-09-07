@@ -1,0 +1,8 @@
+set autoindent
+set mouse=a
+set tabstop=8
+set shiftwidth=4
+set expandtab
+set number
+syntax on
+set background=dark
