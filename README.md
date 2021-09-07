@@ -35,21 +35,6 @@ visible runtime
 * Utilities for **data preprocessing and preparation** for downstream deep learning tasks
 * Utilities for **plotting** and easy analysis of results
 
-## Results
-
-### Performance of various DL structures on benchmark ADM data sets
-<img src="./images/performance_result.png" width=70% height=50%>
-
-
-<!-- ![performance_result](./performance_result.png) -->
-### Effect of Hyper-parameters on Transformer's performance
-<img src="./images/Transformer_result.png" width=70% height=50%>
-<!-- ![Transformer_result](./Transformer_result.png) -->
-
-### Effect of Hyper-parameters on MLP-Mixer's performance
-<img src="./images/MLP-Mixer_result.png" width=70% height=50%>
-<!-- ![MLP-Mixer_result](./MLP-Mixer_result.png) -->
-
 
 ## Usage
 
@@ -69,15 +54,40 @@ pip install AEM3
 ```
 
 ### Loading data and Splitting
+#### Loading benchmark datasets described in Section 4.1 of the paper
+
+ADM refers to the All-dielectric metasurface dataset. Particle dataset refers to the Nanophotonic Particle dataset. The Color dataset refers to the Color filter dataset. The specification of each dataset is provided in the table below:
+
+| Dataset                    | D_in | D_out | Sub_area          | Simulations | CPU time  |
+|----------------------------|------|-------|-------------------|-------------|-----------|
+|  All-dielectric metasurfac | 14   | 2001  | Metamaterials     | 60,000      | 7 months  |
+| Nanophotonic particle      | 8    | 201   | Nanophotonics     | 50,000      | 1.5 hours |
+| Color                      | 3    | 3     | Optical waveguids | 100,000     | -         |
+
+
+#### Loading your own benchmark dataset into the framework
+Although we used AEM dataset for benchmarking, this suite is open and easily adaptable to a wide range of applications in the scientific computing community. To test your own custom dataset, simply normalize (or not, your choice, our loader would not normalize your dataset) and put your dataset into the Custom folder with the format: data_x.csv, data_y.csv where each file contains the input and output of the application. The shape should be [#Simulations, Dim_x] and [#Simulations, Dim_y] and separated by comma. Note that there should not be any header in the csv.
+
 ```
 import AEM3
-from AEM3.data import ADM, Color, Particle, train_val_test_split
+from AEM3.data import ADM, Particle, Color, train_val_test_split, load_custom_dataset
 
+# Load our pre-defined dataset
 dataset = ADM(...)
+# Or, load prepare your own dataset here
+# dataset = load_custom_dataset()
 train_X, train_Y, val_X, val_Y, test_X, test_Y = train_val_test_split(data_set)
 ```
 
+
 ### Loading Models with configurable hyper-paramters and making prediction
+
+#### Architectures of various DL structures implementd
+<img src="./images/Arch.png" width=70% height=50%>
+As dscribed in section 5 in the paper, the architectures are modified slightly from the original Mixer and Transformer models to fit our scientific computing background. 
+
+#### Model hyper-parameter adjustment
+
 ```
 from models.Mixer import DukeMIXER
 from models.MLP import DukeMLP
@@ -100,6 +110,18 @@ result = sweep_mixer(DukeMIXER, sweep_dict)
 heatmap = build_heatmap_mixer(result)
 sns.heatmap(heatmap)
 ```
+
+## Results
+
+### Performance of various DL structures on benchmark ADM data sets
+<img src="./images/performance_result.png" width=70% height=50%>
+
+
+<!-- ![performance_result](./performance_result.png) -->
+### Relative size of our pre-trained networks
+<img src="./images/relative_size_verticle.png" width=70% height=50%>
+<!-- ![Transformer_result](./Transformer_result.png) -->
+
 
 ## Support
 
