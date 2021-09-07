@@ -83,7 +83,10 @@ train_X, train_Y, val_X, val_Y, test_X, test_Y = train_val_test_split(data_set)
 ### Loading Models with configurable hyper-paramters and making prediction
 
 #### Architectures of various DL structures implementd
-<img src="./images/Arch.png" width=70% height=50%>
+<p align="center">
+  <img src="./images/Arch.png" width=50% height=50% >
+</p>
+
 As dscribed in section 5 in the paper, the architectures are modified slightly from the original Mixer and Transformer models to fit our scientific computing background. 
 
 #### Model hyper-parameter adjustment
@@ -114,13 +117,14 @@ sns.heatmap(heatmap)
 ## Results
 
 ### Performance of various DL structures on benchmark ADM data sets
+<p align="center">
 <img src="./images/Main_perf_plot.png" width=70% height=50%>
+</p>
 
-
-<!-- ![performance_result](./performance_result.png) -->
 ### Relative size of our pre-trained networks
-<img src="./images/relative_size_vertical.png" width=70% height=50%>
-<!-- ![Transformer_result](./Transformer_result.png) -->
+<p align="center">
+<img src="./images/relative_size_vertical.png" width=30% height=50%>
+</p>
 
 
 ## Support
