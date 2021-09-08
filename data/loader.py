@@ -106,7 +106,7 @@ def load_Color(normalize=False, batch_size=1024, rand_seed=0, test_ratio=0.2):
     print("Finish loading Particle dataset")
     return train_loader, test_loader, test_x, test_y
 
-def load_Customize(normalize=False, batch_size=1024, rand_seed=0, test_ratio=0.2):
+def load_custom_dataset(normalize=False, batch_size=1024, rand_seed=0, test_ratio=0.2):
     """
     The function to load the Particle dataset
     :param: normalize (default False): whether normalize or not 
