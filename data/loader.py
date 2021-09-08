@@ -6,15 +6,166 @@ from torch.utils.data import Dataset
 from sklearn.model_selection import train_test_split
 import torch
 
-def load_ADM():
+def load_ADM(normalize=False, batch_size=1024, rand_seed=0, test_ratio=0.2):
+    """
+    The function to load the ADM dataset
+    :param: normalize (default False): whether normalize or not 
+    """
+    # Load the ADM dataset
     print("Loading ADM")
+    # Read the training/validation data
+    data_x = pd.read_csv(os.path.join('ADM', 'data_g.csv'), header=None).astype('float32').values
+    data_y = pd.read_csv(os.path.join('ADM', 'data_s.csv'), header=None).astype('float32').values
+    # Read the test data
+    test_x = pd.read_csv(os.path.join('ADM', 'testset', 'test_g.csv'), header=None).astype('float32').values
+    test_y = pd.read_csv(os.path.join('ADM', 'testset', 'test_s.csv'), header=None).astype('float32').values
 
-def load_Particle():
+    # Normalize the dataset (with the same normalization with training and testing)
+    if normalize:
+        data_x, x_max, x_min = normalize_np(data_x)
+        test_x, _, _, = normalize_np(test_x, x_max, x_min)
+
+    # Print the shapes 
+    print("shape of data_x", np.shape(data_x))
+    print("shape of data_y", np.shape(data_y))
+    print("shape of test_x", np.shape(test_x))
+    print("shape of test_y", np.shape(test_y))
+    
+    ## Put the training and testing 
+    train_loader, test_loader = get_data_into_loaders(data_x, data_y, batch_size, 
+                        SimulatedDataSet_regress, rand_seed=rand_seed, test_ratio=test_ratio)
+
+    print("Finish loading Particle dataset")
+    return train_loader, test_loader, test_x, test_y
+
+def load_Particle(normalize=False, batch_size=1024, rand_seed=0, test_ratio=0.2):
+    """
+    The function to load the Particle dataset
+    :param: normalize (default False): whether normalize or not 
+    """
+    # Load the Particle dataset
     print("Loading Particle")
 
-def load_Color():
+    # Read the training/validation data
+    data_x = pd.read_csv(os.path.join('Nano', 'data_g.csv'), header=None).astype('float32').values
+    data_y = pd.read_csv(os.path.join('Nano', 'data_s.csv'), header=None).astype('float32').values
+    # Read the test data
+    test_x = pd.read_csv(os.path.join('Nano', 'testset', 'test_g.csv'), header=None).astype('float32').values
+    test_y = pd.read_csv(os.path.join('Nano', 'testset', 'test_s.csv'), header=None).astype('float32').values
+
+    # Normalize the dataset (with the same normalization with training and testing)
+    if normalize:
+        data_x = (data_x - 50) / 20.
+        test_x = (test_x - 50) / 20.
+
+    # Print the shapes 
+    print("shape of data_x", np.shape(data_x))
+    print("shape of data_y", np.shape(data_y))
+    print("shape of test_x", np.shape(test_x))
+    print("shape of test_y", np.shape(test_y))
+    
+    # Put the training and testing 
+    train_loader, test_loader = get_data_into_loaders(data_x, data_y, batch_size, 
+                        SimulatedDataSet_regress, rand_seed=rand_seed, test_ratio=test_ratio)
+
+    print("Finish loading Particle dataset")
+    return train_loader, test_loader, test_x, test_y
+
+def load_Color(normalize=False, batch_size=1024, rand_seed=0, test_ratio=0.2):
+    """
+    The function to load the Color dataset
+    :param: normalize (default False): whether normalize or not 
+    """
+    # Load the Particle dataset
     print("Loading Color")
 
+    ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!YANG CHANGE THIS PART!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # Read the training/validation data
+    data_x = pd.read_csv(os.path.join('Color', 'data_g.csv'), header=None).astype('float32').values
+    data_y = pd.read_csv(os.path.join('Color', 'data_s.csv'), header=None).astype('float32').values
+    # Read the test data
+    test_x = pd.read_csv(os.path.join('Color', 'testset', 'test_g.csv'), header=None).astype('float32').values
+    test_y = pd.read_csv(os.path.join('Color', 'testset', 'test_s.csv'), header=None).astype('float32').values
+    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    # Normalize the dataset (with the same normalization with training and testing)
+    if normalize:
+        data_x, x_max, x_min = normalize_np(data_x)
+        test_x, _, _, = normalize_np(test_x, x_max, x_min)
+
+    # Print the shapes 
+    print("shape of data_x", np.shape(data_x))
+    print("shape of data_y", np.shape(data_y))
+    print("shape of test_x", np.shape(test_x))
+    print("shape of test_y", np.shape(test_y))
+    
+    # Put the training and testing 
+    train_loader, test_loader = get_data_into_loaders(data_x, data_y, batch_size, 
+                        SimulatedDataSet_regress, rand_seed=rand_seed, test_ratio=test_ratio)
+
+    print("Finish loading Particle dataset")
+    return train_loader, test_loader, test_x, test_y
+
+def load_Customize(normalize=False, batch_size=1024, rand_seed=0, test_ratio=0.2):
+    """
+    The function to load the Particle dataset
+    :param: normalize (default False): whether normalize or not 
+    """
+    # Load the Customize dataset
+    print("Loading Customize")
+
+    # Check if there is customize dataset
+    data_x_file = os.path.join('Customize_data', 'data_g.csv')
+    data_y_file = os.path.join('Customize_data', 'data_s.csv')
+    if not os.path.isfile(data_x_file) or not os.path.isfile(data_y_file):
+        print('Make sure your customize dataset is placed under Customize_data \
+            which is under the Data folder which has been added to path AND your\
+                 input is named data_g.csv and output named data_s.csv')
+        exit()
+    # Read the training/validation data
+    data_x = pd.read_csv(data_x_file, header=None).astype('float32').values
+    data_y = pd.read_csv(data_y_file, header=None).astype('float32').values
+
+    # Read the test data
+    test_x_file = os.path.join('Customize_data', 'testset', 'test_g.csv')
+    test_y_file = os.path.join('Customize_data', 'testset', 'test_s.csv')
+    if not os.path.isfile(test_x_file) or not os.path.isfile(test_y_file):
+        print('Make sure your customize test is placed under Customize_data/testset \
+            which is under the Data folder which has been added to path AND your\
+                 input is named test_g.csv and output named test_s.csv')
+        exit()
+    test_x = pd.read_csv(test_x_file, header=None).astype('float32').values
+    test_y = pd.read_csv(test_y_file, header=None).astype('float32').values
+
+    # Normalize the dataset (with the same normalization with training and testing)
+    if normalize:
+        data_x, x_max, x_min = normalize_np(data_x)
+        test_x, _, _, = normalize_np(test_x, x_max, x_min)
+
+    # Print the shapes 
+    print("shape of data_x", np.shape(data_x))
+    print("shape of data_y", np.shape(data_y))
+    print("shape of test_x", np.shape(test_x))
+    print("shape of test_y", np.shape(test_y))
+    
+    # Put the training and testing 
+    if np.shape(data_x)[1] == 1 or np.shape(data_y)[1] == 1 or len(np.shape(data_x)) != 2:
+        print('Your customize dataset does not satisfy requirement, \
+            either your input or output is 1 dimension, which is not currently supported')
+    train_loader, test_loader = get_data_into_loaders(data_x, data_y, batch_size, 
+                        SimulatedDataSet_regress, rand_seed=rand_seed, test_ratio=test_ratio)
+
+    print("Finish loading Particle dataset")
+    return train_loader, test_loader, test_x, test_y
+
+def train_val_test_split(data_set, batch_size=1024, rand_seed=0, test_ratio=0.2):
+    """
+    The function that change the dataset object to actual train, val and test sets
+    """
+
+    train_loader, test_loader = get_data_into_loaders(data_set.data_x, data_set.data_y, batch_size, 
+                        SimulatedDataSet_regress, rand_seed=rand_seed, test_ratio=test_ratio)
+    
 
 def get_data_into_loaders(data_x, data_y, batch_size, DataSetClass, rand_seed=0, test_ratio=0.3):
     """
@@ -25,11 +176,6 @@ def get_data_into_loaders(data_x, data_y, batch_size, DataSetClass, rand_seed=0,
     :param test_ratio: The testing ratio
     :return: train_loader, test_loader: The pytorch data loader file
     """
-    if test_ratio == 1:         # Test case
-        print('This is testing mode!!! Test ratio = 1')
-        test_data = DataSetClass(data_x, data_y)
-        test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size)
-        return None, test_loader
 
     x_train, x_test, y_train, y_test = train_test_split(data_x, data_y, test_size=test_ratio,
                                                         random_state=rand_seed)
@@ -78,161 +224,6 @@ def normalize_np(x, x_max_list=None, x_min_list=None):
             new_x_max_list.append(x_max)
             new_x_min_list.append(x_min)
     return x, np.array(new_x_max_list), np.array(new_x_min_list)
-
-def read_data_color_filter(flags, eval_data_all=False):
-    """
-    Data reader function for the gaussian mixture data set
-    :param flags: Input flags
-    :return: train_loader and test_loader in pytorch data set format (normalized)
-    """
-
-    # Read the data
-    data_dir = os.path.join(flags.data_dir, 'Color')
-    data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None).astype('float32').values
-    data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None).astype('float32').values
-
-    # This is to for the last test dataset
-    if eval_data_all:
-        data_dir = os.path.join(TEST_SET_DIR, 'Color')
-        data_x = pd.read_csv(os.path.join(data_dir, 'test_x.csv'), header=None).astype('float32').values
-        data_y = pd.read_csv(os.path.join(data_dir, 'test_y.csv'), header=None).astype('float32').values
-        return get_data_into_loaders(data_x, data_y, flags.batch_size,  SimulatedDataSet_regress, rand_seed=flags.rand_seed,test_ratio=1)
-
-    print("shape of data_x", np.shape(data_x))
-    print("shape of data_y", np.shape(data_y))
-
-    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed=flags.rand_seed, test_ratio=flags.test_ratio)
-
-
-def read_data_Yang(flags, eval_data_all=False):
-    """
-    Data reader function for the gaussian mixture data set
-    :param flags: Input flags
-    :return: train_loader and test_loader in pytorch data set format (normalized)
-    """
-
-    # Read the data
-    data_dir = os.path.join(flags.data_dir, 'Yang')
-    data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None).astype('float32').values
-    data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None).astype('float32').values
-    # Normalize the dataset
-    data_x, x_max, x_min = normalize_np(data_x)
-
-    # This is to for the last test dataset
-    if eval_data_all:
-        data_dir = os.path.join(TEST_SET_DIR, 'Yang')
-        data_x = pd.read_csv(os.path.join(data_dir, 'test_x.csv'), header=None).astype('float32').values
-        data_y = pd.read_csv(os.path.join(data_dir, 'test_y.csv'), header=None).astype('float32').values
-        data_x, _, _, = normalize_np(data_x, x_max, x_min)
-        print('This is Yang dataset with data_x shape of', np.shape(data_x))
-        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed=flags.rand_seed, test_ratio=1)
-
-    print("shape of data_x", np.shape(data_x))
-    print("shape of data_y", np.shape(data_y))
-    
-    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed=flags.rand_seed, test_ratio=flags.test_ratio)
-
-def read_data_peurifoy(flags, eval_data_all=False):
-    """
-    Data reader function for the gaussian mixture data set
-    :param flags: Input flags
-    :return: train_loader and test_loader in pytorch data set format (normalized)
-    """
-
-    # Read the data
-    data_dir = os.path.join(flags.data_dir, 'Peurifoy')
-    data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None).astype('float32').values
-    data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None).astype('float32').values
-    # This is to for the last test dataset
-    if eval_data_all:
-        data_dir = os.path.join(TEST_SET_DIR, 'Peurifoy')
-        data_x = pd.read_csv(os.path.join(data_dir, 'test_x.csv'), header=None).astype('float32').values
-        data_y = pd.read_csv(os.path.join(data_dir, 'test_y.csv'), header=None).astype('float32').values
-        data_x = (data_x - 50) / 20.
-        print('This is Perifoy dataset with data_x shape of', np.shape(data_x))
-        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed=flags.rand_seed,test_ratio=1)
-
-
-    # The geometric boundary of peurifoy dataset is [30, 70], normalizing manually
-    data_x = (data_x - 50) / 20.
-
-    print("shape of data_x", np.shape(data_x))
-    print("shape of data_y", np.shape(data_y))
-
-    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed=flags.rand_seed, test_ratio=flags.test_ratio)
-
-def read_data(flags, eval_data_all=False):
-    """
-    The data reader allocator function
-    The input is categorized into couple of different possibilities
-    0. meta_material
-    1. gaussian_mixture
-    2. sine_wave
-    3. naval_propulsion
-    4. robotic_arm
-    5. ballistics
-    :param flags: The input flag of the input data set
-    :param eval_data_all: The switch to turn on if you want to put all data in evaluation data
-    :return:
-    """
-    print("In read_data, flags.data_set =", flags.data_set)
-    if 'Yang' in flags.data_set or 'ADM' in flags.data_set:
-        train_loader, test_loader = read_data_Yang(flags,eval_data_all=eval_data_all)
-    elif 'Peurifoy' in  flags.data_set :
-        train_loader, test_loader = read_data_peurifoy(flags,eval_data_all=eval_data_all)
-    elif 'olor' in flags.data_set:
-        train_loader, test_loader =read_data_color_filter(flags,eval_data_all=eval_data_all)
-    else:
-        sys.exit("Your flags.data_set entry is not correct, check again!")
-    return train_loader, test_loader
-
-class MetaMaterialDataSet(Dataset):
-    """ The Meta Material Dataset Class """
-    def __init__(self, ftr, lbl, bool_train):
-        """
-        Instantiate the Dataset Object
-        :param ftr: the features which is always the Geometry !!
-        :param lbl: the labels, which is always the Spectra !!
-        :param bool_train:
-        """
-        self.ftr = ftr
-        self.lbl = lbl
-        self.bool_train = bool_train
-        self.len = len(ftr)
-
-    def __len__(self):
-        return self.len
-
-    def __getitem__(self, ind):
-        return self.ftr[ind, :], self.lbl[ind, :]
-
-
-class SimulatedDataSet_class_1d_to_1d(Dataset):
-    """ The simulated Dataset Class for classification purposes"""
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.len = len(x)
-
-    def __len__(self):
-        return self.len
-
-    def __getitem__(self, ind):
-        return self.x[ind], self.y[ind]
-
-
-class SimulatedDataSet_class(Dataset):
-    """ The simulated Dataset Class for classification purposes"""
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.len = len(x)
-
-    def __len__(self):
-        return self.len
-
-    def __getitem__(self, ind):
-        return self.x[ind, :], self.y[ind]
 
 
 class SimulatedDataSet_regress(Dataset):
