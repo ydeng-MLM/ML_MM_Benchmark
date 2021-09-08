@@ -70,13 +70,13 @@ Although we used AEM dataset for benchmarking, this suite is open and easily ada
 
 ```
 import AEM3
-from AEM3.data import ADM, Particle, Color, train_val_test_split, load_custom_dataset
+from AEM3.data import ADM, Particle, Color, load_custom_dataset
 
 # Load our pre-defined dataset
-dataset = ADM(...)
+train_loader, test_loader, test_x, test_y =ADM/Particle/Color(normalize=True/False, batch_size=1024)    # Loading the ADM dataset
+
 # Or, load prepare your own dataset here
-# dataset = load_custom_dataset()
-train_X, train_Y, val_X, val_Y, test_X, test_Y = train_val_test_split(data_set)
+# train_loader, test_loader, test_x, test_y = load_custom_dataset()
 ```
 
 
@@ -96,25 +96,32 @@ from models.Mixer import DukeMIXER
 from models.MLP import DukeMLP
 from models.Transformer import DukeTransformer
 
-model_transformer = DukeTransformer(...)
-model_mlp = DukeMLP(...)
-model_mixer = DukeMIXER(...)
+# Defining all the models here (We highly recommend training the models one by one due to GPU RAM constraints
+model= DukeTransformer(dim_g, dim_s, feature_channel_num=32, nhead_encoder=8, 
+                                        dim_fc_encoder=64, num_encoder_layer=6, head_linear=None, 
+                                        tail_linear=None, sequence_length=8, model_name=None, 
+                                        ckpt_dir=os.path.join(os.path.abspath(''), 'models','Transformer'))
+# model = DukeMLP(...)
+# model = DukeMIXER(...)
 
-model_transformer.train(train_X, train_Y, epochs = .., lr = ..)
-model_transformer(test_X)
+# Model training code
+model.train(train_loader, test_loader, epochs=500, optm='Adam', reg_scale=5e-4, lr=1e-3, 
+                        lr_schedueler_name='reduce_plateau',lr_decay_rate=0.3, eval_step=10)
+
+# Loading our provided pretrained model if you don't want to train it or just want to reproduce our result
+model.load_retrain_from_paper(dataset_name='Particle'/'ADM'/'Color')
+
+# Loading the model you just trained or hypersweeped
+model.load_model(model_directory='YOUR_MODEL_DIRECOTRY')
+
+# Model inference code: Give it X, output Y
+pred_Y = model(test_X)
+
+# Model evaluation code: Give it test_X, test_Y, output MSE and generate a plot of MSE histogram in \data
+MSE = model.evaluate(test_x, test_y, save_dir'data/')
+
 ```
 
-### Building heatmap and Plotting
-```
-import seaborn as sns
-from models.Mixer import DukeMIXER, sweep_mixer, build_heatmap_mixer
-
-result = sweep_mixer(DukeMIXER, sweep_dict)
-heatmap = build_heatmap_mixer(result)
-sns.heatmap(heatmap)
-```
-
-## Results
 
 ### Performance of various DL structures on benchmark ADM data sets
 <p align="center">

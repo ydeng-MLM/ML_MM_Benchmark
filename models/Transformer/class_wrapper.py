@@ -16,9 +16,9 @@ import numpy as np
 from math import inf
 import pandas as pd
 # Own module
-from utils.time_recorder import time_keeper
-from model_maker import Transformer
-from utils.evaluation_helper import plotMSELossDistrib
+from models.Transformer.model_maker import Transformer
+from models.Transformer.utils.evaluation_helper import plotMSELossDistrib
+from models.Transformer.utils.time_recorder import time_keeper
 
 class Network(object):
     def __init__(self, dim_g, dim_s, feature_channel_num=32, nhead_encoder=8, 
@@ -40,18 +40,25 @@ class Network(object):
                 self.ckpt_dir = os.path.join(ckpt_dir, time.strftime('%Y%m%d_%H%M%S', time.localtime()))
             else:
                 self.ckpt_dir = os.path.join(ckpt_dir, model_name)
-        self.model = self.create_model()
         self.log = SummaryWriter(self.ckpt_dir)     # Create a summary writer for keeping the summary to the tensor board
         self.best_validation_loss = float('inf')    # Set the BVL to large number
         self.best_training_loss = float('inf')    # Set the BTL to large number
 
         # marking the flag object with these information
-        flags = object()
-        flags.dim_g, flags.dim_s, flags.feature_channel_num, flags.nhead_encoder, flags.dim_fc_encoder, 
-        flags.num_encoder_layer, flags.head_linear, flags.tail_linear, flags.sequence_length, 
-        flags.model_name = dim_g, dim_s, feature_channel_num, nhead_encoder, dim_fc_encoder,num_encoder_layer, 
-        head_linear, tail_linear, sequence_length, model_name
+        class FlagsObject(object):
+            pass
+        flags = FlagsObject()
+        field_list = ['dim_g', 'dim_s', 'feature_channel_num', 'nhead_encoder', 'dim_fc_encoder',
+        'num_encoder_layer', 'head_linear', 'tail_linear', 'sequence_length', 'model_name']
+        for field in field_list:
+            setattr(flags, field, eval(field))
+        # flags.dim_g, flags.dim_s, flags.feature_channel_num, flags.nhead_encoder, flags.dim_fc_encoder, 
+        # flags.num_encoder_layer, flags.head_linear, flags.tail_linear, flags.sequence_length, 
+        # flags.model_name = dim_g, dim_s, feature_channel_num, nhead_encoder, dim_fc_encoder,num_encoder_layer, 
+        # head_linear, tail_linear, sequence_length, model_name
         self.flags = flags
+        
+        self.model = self.create_model()
 
     def create_model(self):
         """
@@ -99,16 +106,16 @@ class Network(object):
             raise Exception("Your Optimizer is neither Adam, RMSprop or SGD, please change in param or contact Ben")
         return op
     
-    def make_lr_scheduler(self, optm, lr_scheduler, lr_decay_rate, warm_restart_T_0=50):
+    def make_lr_scheduler(self, optm, lr_scheduler_name, lr_decay_rate, warm_restart_T_0=50):
         """
         Make the learning rate scheduler as instructed. More modes can be added to this, current supported ones:
         1. ReduceLROnPlateau (decrease lr when validation error stops improving
         :return:
         """
-        if lr_scheduler == 'warm_restart':
+        if lr_scheduler_name == 'warm_restart':
             return lr_scheduler.CosineAnnealingWarmRestarts(optm, warm_restart_T_0, T_mult=1, eta_min=0, last_epoch=-1, verbose=False) 
         elif lr_scheduler == 'reduce_plateau':
-            return lr_scheduler.ReduceLROnPlateau(optimizer=optm, mode='min',
+            return lr_scheduler_name.ReduceLROnPlateau(optimizer=optm, mode='min',
                                               factor=lr_decay_rate,
                                               patience=10, verbose=True, threshold=1e-4)
 
@@ -140,7 +147,7 @@ class Network(object):
         self.model = torch.load(os.path.join(model_directory, 'best_model_forward.pt'))
 
     def train(self, train_loader, test_loader, epochs=500, optm='Adam', reg_scale=5e-4,
-            lr=1e-3, lr_scheduler='reduce_plateau', lr_decay_rate=0.3, eval_step=10):
+            lr=1e-3, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.3, eval_step=10):
         """
         The major training function. This would start the training using information given in the flags
         :return: None
@@ -152,7 +159,7 @@ class Network(object):
 
         # Construct optimizer after the model moved to GPU
         self.optm = self.make_optimizer(optm, lr, reg_scale)
-        self.lr_scheduler = self.make_lr_scheduler(self.optm, lr_scheduler, lr_decay_rate)
+        self.lr_scheduler = self.make_lr_scheduler(self.optm, lr_scheduler_name, lr_decay_rate)
 
         # Time keeping
         tk = time_keeper(time_keeping_file=os.path.join(self.ckpt_dir, 'training time.txt'))
