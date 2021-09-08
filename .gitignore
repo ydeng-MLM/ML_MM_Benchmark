@@ -7,6 +7,8 @@
 Data/
 test*/
 datasets/
+*best_models
+*data
 
 # The model files trained
 */models
