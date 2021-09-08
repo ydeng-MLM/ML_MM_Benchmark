@@ -136,15 +136,19 @@ class Network(object):
         return 0
 
 
-    def load_model(self, model_directory=None):
+    def load_model(self, pre_trained_model=None, model_directory=None):
         """
         Loading the model from the check point folder with name best_model_forward.pt
         :return:
         """
-        if model_directory is None:
-            model_directory = self.ckpt_dir
-        # self.model.load_state_dict(torch.load(os.path.join(self.ckpt_dir, 'best_model_state_dict.pt')))
-        self.model = torch.load(os.path.join(model_directory, 'best_model_forward.pt'))
+        if pre_trained_model is None:       # Loading the trained model
+            if model_directory is None:
+                model_directory = self.ckpt_dir
+            # self.model.load_state_dict(torch.load(os.path.join(self.ckpt_dir, 'best_model_state_dict.pt')))
+            self.model = torch.load(os.path.join(model_directory, 'best_model_forward.pt'))
+        else:       # Loading the pretrained model from the internet
+            return 0
+
 
     def train(self, train_loader, test_loader, epochs=500, optm='Adam', reg_scale=5e-4,
             lr=1e-3, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.3, eval_step=10):
