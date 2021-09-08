@@ -26,6 +26,7 @@ datasets/
 **.err
 **.out
 **pidfile.txt
+**training time**
 **event**
 **2021**  # Temporary models trained
 

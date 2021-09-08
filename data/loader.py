@@ -166,6 +166,18 @@ def train_val_test_split(data_set, batch_size=1024, rand_seed=0, test_ratio=0.2)
     train_loader, test_loader = get_data_into_loaders(data_set.data_x, data_set.data_y, batch_size, 
                         SimulatedDataSet_regress, rand_seed=rand_seed, test_ratio=test_ratio)
     
+def get_data_into_loaders_only_x(data_x, batch_size=512):
+    """
+    This function facilitates the batching of the test data for only input is given
+    """
+    dataset = input_only_Dataset(data_x)                        # Setting up the dataset from class input_only_dataset
+    return torch.utils.data.DataLoader(dataset, batch_size=batch_size)
+
+def get_test_data_into_loaders(data_x, data_y):
+    print('loading the test set data')
+    test_data = SimulatedDataSet_regress(data_x, data_y)
+    return torch.utils.data.DataLoader(test_data, batch_size=512)
+
 
 def get_data_into_loaders(data_x, data_y, batch_size, DataSetClass, rand_seed=0, test_ratio=0.3):
     """
@@ -179,6 +191,7 @@ def get_data_into_loaders(data_x, data_y, batch_size, DataSetClass, rand_seed=0,
 
     x_train, x_test, y_train, y_test = train_test_split(data_x, data_y, test_size=test_ratio,
                                                         random_state=rand_seed)
+
     print('total number of training sample is {}, the dimension of the feature is {}'.format(len(x_train), len(x_train[0])))
     print('total number of test sample is {}'.format(len(y_test)))
 
@@ -239,3 +252,14 @@ class SimulatedDataSet_regress(Dataset):
     def __getitem__(self, ind):
         return self.x[ind, :], self.y[ind, :]
 
+class input_only_Dataset(Dataset):
+    """ The simulated Dataset Class for regression purposes"""
+    def __init__(self, x):
+        self.x = x
+        self.len = len(x)
+
+    def __len__(self):
+        return self.len
+
+    def __getitem__(self, ind):
+        return self.x[ind, :]

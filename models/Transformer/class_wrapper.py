@@ -16,6 +16,7 @@ import numpy as np
 from math import inf
 import pandas as pd
 # Own module
+from data.loader import get_data_into_loaders_only_x, get_test_data_into_loaders
 from models.Transformer.model_maker import Transformer
 from models.Transformer.utils.evaluation_helper import plotMSELossDistrib
 from models.Transformer.utils.time_recorder import time_keeper
@@ -24,7 +25,6 @@ class Network(object):
     def __init__(self, dim_g, dim_s, feature_channel_num=32, nhead_encoder=8, 
                 dim_fc_encoder=64,num_encoder_layer=6, head_linear=None, 
                 tail_linear=None, sequence_length=8, model_name=None, 
-                stop_threshold=1e-7, 
                 ckpt_dir=os.path.join(os.path.abspath(''), 'models','Transformer'),
                  inference_mode=False, saved_model=None):
         if head_linear is None:
@@ -114,8 +114,8 @@ class Network(object):
         """
         if lr_scheduler_name == 'warm_restart':
             return lr_scheduler.CosineAnnealingWarmRestarts(optm, warm_restart_T_0, T_mult=1, eta_min=0, last_epoch=-1, verbose=False) 
-        elif lr_scheduler == 'reduce_plateau':
-            return lr_scheduler_name.ReduceLROnPlateau(optimizer=optm, mode='min',
+        elif lr_scheduler_name == 'reduce_plateau':
+            return lr_scheduler.ReduceLROnPlateau(optimizer=optm, mode='min',
                                               factor=lr_decay_rate,
                                               patience=10, verbose=True, threshold=1e-4)
 
@@ -126,16 +126,7 @@ class Network(object):
         """
         # torch.save(self.model.state_dict, os.path.join(self.ckpt_dir, 'best_model_state_dict.pt'))
         torch.save(self.model, os.path.join(self.ckpt_dir, 'best_model_forward.pt'))
-    
-    
-    def load_pretrain_from_paper(self, dataset_name):
-        """
-        This is the function that loads the pre-trained weigths from the paper that the authors optimized
-        """
-        print("Sorry this function is still being updated, check back later for more details!")
-        return 0
-
-
+   
     def load_model(self, pre_trained_model=None, model_directory=None):
         """
         Loading the model from the check point folder with name best_model_forward.pt
@@ -146,12 +137,16 @@ class Network(object):
                 model_directory = self.ckpt_dir
             # self.model.load_state_dict(torch.load(os.path.join(self.ckpt_dir, 'best_model_state_dict.pt')))
             self.model = torch.load(os.path.join(model_directory, 'best_model_forward.pt'))
+            print("You have successfully loaded the model from ", model_directory)
         else:       # Loading the pretrained model from the internet
+            print("You have successfully loaded the pretrained model for ", pre_trained_model)
+
             return 0
 
 
     def train(self, train_loader, test_loader, epochs=500, optm='Adam', reg_scale=5e-4,
-            lr=1e-3, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.3, eval_step=10):
+            lr=1e-3, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.3, eval_step=10,
+            stop_threshold=1e-7):
         """
         The major training function. This would start the training using information given in the flags
         :return: None
@@ -218,10 +213,10 @@ class Network(object):
                 # Model improving, save the model down
                 if test_avg_loss < self.best_validation_loss:
                     self.best_validation_loss = test_avg_loss
-                    self.save()
                     print("Saving the model down...")
+                    self.save()
 
-                    if self.best_validation_loss < self.stop_threshold:
+                    if self.best_validation_loss < stop_threshold:
                         print("Training finished EARLIER at epoch %d, reaching loss of %.5f" %\
                               (epoch, self.best_validation_loss))
                         break
@@ -230,7 +225,7 @@ class Network(object):
             self.lr_scheduler.step(train_avg_loss)
         tk.record(1)                # Record the total time of the training peroid
     
-    def __call__(self, test_X):
+    def __call__(self, test_X, batch_size=512):
         """
         This is to call this model to do testing, 
         :param: test_X: The testing X to be input to the model
@@ -239,11 +234,30 @@ class Network(object):
         cuda = True if torch.cuda.is_available() else False
         if cuda:
             self.model.cuda()
-            test_X = test_X.cuda()
+        
+        # Converting the numpy into cuda
+        #if isinstance(test_X, np.ndarray):
+        #    print('your input is an numpy array, converting to an tensor for you')
+        #    test_X = torch.tensor(test_X).cuda()
+        
         # Make the model to eval mode
         self.model.eval()
-        # output the Ypred
-        Ypred = self.model(test_X).cpu().data.numpy()
+
+        # Preparing for eval
+        Ypred = None
+        test_loader = get_data_into_loaders_only_x(test_X)
+
+        # Partitioning the model output into small batches to avoid RAM overflow
+        for j, geometry in enumerate(test_loader):  # Loop through the eval set
+            if cuda:
+                geometry = geometry.cuda()
+            # output the Ypred
+            Ypred_batch = self.model(geometry).cpu().data.numpy()
+            if Ypred is None:
+                Ypred = Ypred_batch
+            else:
+                Ypred = np.concatenate([Ypred, Ypred_batch], axis=0)
+        print('Inference finished, result in ypred shape', np.shape(Ypred))
         return Ypred
 
     def evaluate(self, test_x, test_y,  save_dir='data/', prefix=''):
@@ -251,9 +265,6 @@ class Network(object):
         if not os.path.isdir(save_dir):
             os.makedirs(save_dir)
         
-        # Make the names align
-        geometry, spectra = test_x, test_y
-
         # Put things on conda
         cuda = True if torch.cuda.is_available() else False
         if cuda:
@@ -262,7 +273,7 @@ class Network(object):
         # Set to evaluation mode for batch_norm layers
         self.model.eval()
         
-        saved_model_str = self.saved_model.replace('/','_') + prefix
+        saved_model_str = prefix
         # Get the file names
         Ypred_file = os.path.join(save_dir, 'test_Ypred_{}.csv'.format(saved_model_str))
         Xtruth_file = os.path.join(save_dir, 'test_Xtruth_{}.csv'.format(saved_model_str))
@@ -270,16 +281,19 @@ class Network(object):
 
         tk = time_keeper(os.path.join(save_dir, 'evaluation_time.txt'))
 
+        test_loader = get_test_data_into_loaders(test_x, test_y)
+
         # Open those files to append
         with open(Xtruth_file, 'a') as fxt,open(Ytruth_file, 'a') as fyt,\
                 open(Ypred_file, 'a') as fyp:
-            if cuda:
-                geometry = geometry.cuda()
-                spectra = spectra.cuda()
-            Ypred = self.model(geometry).cpu().data.numpy()
-            np.savetxt(fxt, geometry.cpu().data.numpy())
-            np.savetxt(fyt, spectra.cpu().data.numpy())
-            np.savetxt(fyp, Ypred)
+            for j, (geometry, spectra) in enumerate(test_loader):
+                if cuda:
+                    geometry = geometry.cuda()
+                    spectra = spectra.cuda()
+                Ypred = self.model(geometry).cpu().data.numpy()
+                np.savetxt(fxt, geometry.cpu().data.numpy())
+                np.savetxt(fyt, spectra.cpu().data.numpy())
+                np.savetxt(fyp, Ypred)
         tk.record(1)                # Record the total time of the eval period
 
         MSE = plotMSELossDistrib(Ypred_file, Ytruth_file)

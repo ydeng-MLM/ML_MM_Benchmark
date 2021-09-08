@@ -20,8 +20,9 @@ class Transformer(nn.Module):
     """
     def __init__(self, flags):
         super(Transformer, self).__init__()
-        # Save the flags
-        self.flags = flags
+        # Transferring flags field into self field
+        self.head_linear = flags.head_linear
+        self.sequence_length = flags.sequence_length
         # Use a small MLP to get to large dimension
         self.head_linears = nn.ModuleList([])
         self.head_bn_linears = nn.ModuleList([])
@@ -64,7 +65,7 @@ class Transformer(nn.Module):
         """
         The forward function of the transformer
         """
-        if self.flags.head_linear:
+        if self.head_linear:
             """
             In this case we are using a MLP structure to convert the MM problem into a transformer problem
             """
@@ -75,14 +76,14 @@ class Transformer(nn.Module):
             else:
                 out = fc(out)
             # Reshape the output into the transformer taking shape
-            out = out.view([out.size(0), self.flags.sequence_length, -1])
+            out = out.view([out.size(0), self.sequence_length, -1])
         else:
             """
             In this case we are using the MLP mixer approach of changing the
             [dim_G x 1] to [sentence_length (10) x embedding_length(512)], which is [flags.sequence_length x flags.feature_channel_num]
             """
             out = torch.unsqueeze(G, 2)         # Batch_size x dim_G x 1
-            out = out.view([out.size(0), self.flags.sequence_length, -1])
+            out = out.view([out.size(0), self.sequence_length, -1])
             out = self.sequence_fc_layer(out)
         # Get the the data transformed
         out = self.transformer_encoder(out)
