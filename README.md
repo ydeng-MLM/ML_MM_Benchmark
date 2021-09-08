@@ -98,9 +98,9 @@ from models.Transformer import DukeTransformer
 
 # Defining all the models here (We highly recommend training the models one by one due to GPU RAM constraints
 model= DukeTransformer(dim_g, dim_s, feature_channel_num=32, nhead_encoder=8, 
-                                        dim_fc_encoder=64, num_encoder_layer=6, head_linear=None, 
-                                        tail_linear=None, sequence_length=8, model_name=None, 
-                                        ckpt_dir=os.path.join(os.path.abspath(''), 'models','Transformer'))
+                        dim_fc_encoder=64, num_encoder_layer=6, head_linear=None, 
+                        tail_linear=None, sequence_length=8, model_name=None, 
+                        ckpt_dir=os.path.join(os.path.abspath(''), 'models','Transformer'))
 # model = DukeMLP(...)
 # model = DukeMIXER(...)
 
@@ -108,7 +108,8 @@ model= DukeTransformer(dim_g, dim_s, feature_channel_num=32, nhead_encoder=8,
 model.train(train_loader, test_loader, epochs=500, optm='Adam', reg_scale=5e-4, lr=1e-3, 
                         lr_schedueler_name='reduce_plateau',lr_decay_rate=0.3, eval_step=10)
 
-# Loading the model you just trained or hypersweeped or our provided pretrained model if you don't want to train it or just want to reproduce our result, only choose one between these 2
+# Loading the model you just trained or hypersweeped or our provided pretrained model if 
+# you don't want to train it or just want to reproduce our result, only choose one between these 2
 model.load_model(pre_trained_model='Particle'\'AMD'\'Color'\None, 
                 model_directory='YOUR_MODEL_DIRECOTRY')
 
