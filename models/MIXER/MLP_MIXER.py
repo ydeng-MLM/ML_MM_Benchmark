@@ -193,10 +193,27 @@ class MonsterFB(nn.Module):
         x = self.mixer(x)
         prediction = self.MLP2(x)
 
-
         return prediction
 
-    def train_with(self,trainX,trainY,valX,valY,batch_size=128,criterion=None,lr=1e-4,epochs=300):
+    def evaluate(self,x,y=None,criterion=None):
+        self.eval()
+        prediction = self.forward(x.to(self.device))
+        if y is not None:
+          if criterion is None:
+            criterion = nn.MSELoss()
+
+          error = criterion(prediction,y)
+          return error
+        return prediction
+
+    def load_model(self,dataset):
+      '''
+      TO DO
+      '''
+      pass
+
+    def train_(self,trainX,trainY,valX,valY, \
+    batch_size=128,criterion=None,lr=1e-4,epochs=300, lr_scheduler=None, weight_decay=0.):
       '''
       Parameters: 
       (1) X: torch tensor
@@ -205,7 +222,7 @@ class MonsterFB(nn.Module):
       trainloader = torch.utils.data.DataLoader(helper.MyDataset(trainX,trainY), batch_size=batch_size)
 
       self.to(self.device)
-      optimizer = optim.Adam(self.parameters(), lr=lr)
+      optimizer = optim.Adam(self.parameters(), lr=lr,weight_decay = weight_decay)
       if not criterion:
         criterion = nn.MSELoss()
 
