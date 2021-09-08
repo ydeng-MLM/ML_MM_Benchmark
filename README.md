@@ -108,11 +108,9 @@ model= DukeTransformer(dim_g, dim_s, feature_channel_num=32, nhead_encoder=8,
 model.train(train_loader, test_loader, epochs=500, optm='Adam', reg_scale=5e-4, lr=1e-3, 
                         lr_schedueler_name='reduce_plateau',lr_decay_rate=0.3, eval_step=10)
 
-# Loading 
-model.load_retrain_from_paper(dataset_name='Particle'/'ADM'/'Color')
-
 # Loading the model you just trained or hypersweeped or our provided pretrained model if you don't want to train it or just want to reproduce our result, only choose one between these 2
-model.load_model(pre_trained_model='Particle'\'AMD'\'Color'\None, model_directory='YOUR_MODEL_DIRECOTRY')
+model.load_model(pre_trained_model='Particle'\'AMD'\'Color'\None, 
+                model_directory='YOUR_MODEL_DIRECOTRY')
 
 # Model inference code: Give it X, output Y
 pred_Y = model(test_X)
