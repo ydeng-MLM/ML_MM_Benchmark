@@ -11,6 +11,10 @@ from torch.utils.data import DataLoader
 from einops.layers.torch import Rearrange
 
 from . import helper
+from . import trainer
+
+import os
+import math
 
 class FeedForward(nn.Module):
   '''
@@ -147,7 +151,10 @@ class MonsterFB(nn.Module):
         OOP for the model that combines and Mixer and MLP layers
     '''
     def __init__(self,input_dim,output_dim,mlp_dim,patch_size,mixer_layer_num, \
-                embed_dim=128, token_dim=128, channel_dim=256, mlp_layer_num_front=3,mlp_layer_num_back=3,dropout=0.,device=None):
+                embed_dim=128, token_dim=128, channel_dim=256, \
+                mlp_layer_num_front=3,mlp_layer_num_back=3,dropout=0., \
+                device=None, stop_threshold=1e-7, \
+                ckpt_dir= os.path.join(os.path.abspath(''), 'models','Transformer')):
         super().__init__()
 
         # GPU device
@@ -155,6 +162,9 @@ class MonsterFB(nn.Module):
           self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         else:
           self.device = device
+
+        self.stop_threshold = stop_threshold
+        self.ckpt_dir = ckpt_dir
 
         # MLP layers in front
         sequence1=[nn.Linear(input_dim,mlp_dim),nn.ReLU(),nn.Dropout(dropout)]
@@ -212,24 +222,29 @@ class MonsterFB(nn.Module):
       '''
       pass
 
-    def train_(self,trainX,trainY,valX,valY, \
-    batch_size=128,criterion=None,lr=1e-4,epochs=300, lr_scheduler=None, weight_decay=0.):
+    def train_(self,trainloader,testloader, \
+    batch_size=128,criterion=None,epochs=300,  eval_step=10, \
+    optm='Adam', lr=1e-4, reg_scale=5e-4, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.3):
       '''
       Parameters: 
-      (1) X: torch tensor
-      (2) Y: torch tensor
+      (1) trainloader: data loader of training data
+      (2) testloader: data loader of test/val data
       '''
-      trainloader = torch.utils.data.DataLoader(helper.MyDataset(trainX,trainY), batch_size=batch_size)
 
-      self.to(self.device)
-      optimizer = optim.Adam(self.parameters(), lr=lr,weight_decay = weight_decay)
+      # Construct optimizer after the model moved to GPU
+      optimizer = self.make_optimizer(optim=optm, lr=lr, reg_scale=reg_scale)
+      scheduler = self.make_lr_scheduler(optimizer, lr_scheduler_name, lr_decay_rate)
+      
       if not criterion:
         criterion = nn.MSELoss()
 
-      minvalloss = 1
+      
       trainlosses=[]
       vallosses=[]
-      for _ in tqdm(range(epochs)):
+      minvalloss = math.inf
+
+      self.to(self.device)
+      for epoch in tqdm(range(epochs)):
 
           self.train()
           for data in trainloader:
@@ -241,12 +256,64 @@ class MonsterFB(nn.Module):
               loss.backward()
 
               optimizer.step()
-          with torch.no_grad():
-              trainlosses.append(loss.item())
-              self.eval()
-              valloss = criterion(self.forward(valX.to(self.device)),valY.to(self.device)).item()
+          
+          if epoch % eval_step == 0:                      # For eval steps, do the evaluations and tensor board
+              trainloss = helper.eval_loader(self,trainloader,self.device,criterion)
+              trainlosses.append(trainloss)
+              valloss = helper.eval_loader(self,testloader,self.device,criterion)
+              vallosses.append(valloss)
+              
               if valloss < minvalloss:
                   minvalloss = valloss
-                  vallosses.append(valloss)
+                  self.minvalloss = minvalloss
+                  self.save()
+                  print("Saving the model down...")
+
+                  if minvalloss < self.stop_threshold:
+                    print("Training finished EARLIER at epoch %d, reaching loss of %.5f" %\
+                            (epoch, self.minvalloss))
+                    break
+
+              print("This is Epoch %d, training loss %.5f, validation loss %.5f" \
+                    % (epoch, trainloss, valloss))
+          
+          if scheduler:
+            scheduler.step()
 
       return trainlosses,vallosses
+
+    def save(self):
+        """
+        Saving the model to the current check point folder with name best_model_forward.pt
+        :return: None
+        """
+        # torch.save(self.model.state_dict, os.path.join(self.ckpt_dir, 'best_model_state_dict.pt'))
+        torch.save(self, os.path.join(self.ckpt_dir, 'best_model_forward.pt'))
+    
+    def make_lr_scheduler(self, optm, lr_scheduler_name, lr_decay_rate, warm_restart_T_0=50):
+        """
+        Make the learning rate scheduler as instructed. More modes can be added to this, current supported ones:
+        1. ReduceLROnPlateau (decrease lr when validation error stops improving
+        :return:
+        """
+        if lr_scheduler_name == 'warm_restart':
+            return lr_scheduler.CosineAnnealingWarmRestarts(optm, warm_restart_T_0, T_mult=1, eta_min=0, last_epoch=-1, verbose=False) 
+        elif lr_scheduler == 'reduce_plateau':
+            return lr_scheduler_name.ReduceLROnPlateau(optimizer=optm, mode='min',
+                                              factor=lr_decay_rate,
+                                              patience=10, verbose=True, threshold=1e-4)
+
+    def make_optimizer(self, optim, lr, reg_scale):
+        """
+        Make the corresponding optimizer from the Only below optimizers are allowed. Welcome to add more
+        :return:
+        """
+        if optim == 'Adam':
+            op = torch.optim.Adam(self.parameters(), lr=lr, weight_decay=reg_scale)
+        elif optim == 'RMSprop':
+            op = torch.optim.RMSprop(self.parameters(), lr=lr, weight_decay=reg_scale)
+        elif optim == 'SGD':
+            op = torch.optim.SGD(self.parameters(), lr=lr, weight_decay=reg_scale)
+        else:
+            raise Exception("Your Optimizer is neither Adam, RMSprop or SGD, please change in param or contact Ben")
+        return op
