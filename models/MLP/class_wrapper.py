@@ -11,82 +11,107 @@ from torch import nn
 from torch.utils.tensorboard import SummaryWriter
 # from torchsummary import summary
 from torch.optim import lr_scheduler
-
 # Libs
 import numpy as np
-import matplotlib.pyplot as plt
+from math import inf
+import pandas as pd
 # Own module
+from data.loader import get_data_into_loaders_only_x, get_test_data_into_loaders
+from models.MLP.model_maker import Forward
+from models.Transformer.utils.evaluation_helper import plotMSELossDistrib
+from models.MLP.utils.time_recorder import time_keeper
 
 class Network(object):
-    def __init__(self, model_fn, flags, train_loader, test_loader,
-                 ckpt_dir=os.path.join(os.path.abspath(''), 'models'),
+    def __init__(self, dim_g, dim_s, linear=[500, 500, 500, 500, 500, 500], skip_connection=False, skip_head=0, dropout=0, model_name=None, 
+                ckpt_dir=os.path.join(os.path.abspath(''), 'models','MLP'),
                  inference_mode=False, saved_model=None):
-        self.model_fn = model_fn                                # The model maker function
-        self.flags = flags                                      # The Flags containing the specs
+        linear[0] = dim_g
+        linear[-1] = dim_s
         if inference_mode:                                      # If inference mode, use saved model
             self.ckpt_dir = os.path.join(ckpt_dir, saved_model)
             self.saved_model = saved_model
             print("This is inference mode, the ckpt is", self.ckpt_dir)
         else:                                                   # training mode, create a new ckpt folder
-            if flags.model_name is None:                    # leave custume name if possible
+            if model_name is None:
                 self.ckpt_dir = os.path.join(ckpt_dir, time.strftime('%Y%m%d_%H%M%S', time.localtime()))
             else:
-                self.ckpt_dir = os.path.join(ckpt_dir, flags.model_name)
-        self.model = self.create_model()                        # The model itself
-        self.loss = self.make_loss()                            # The loss function
-        self.optm = None                                        # The optimizer: Initialized at train()
-        self.lr_scheduler = None                                # The lr scheduler: Initialized at train()
-        self.train_loader = train_loader                        # The train data loader
-        self.test_loader = test_loader                          # The test data loader
+                self.ckpt_dir = os.path.join(ckpt_dir, model_name)
         self.log = SummaryWriter(self.ckpt_dir)     # Create a summary writer for keeping the summary to the tensor board
         self.best_validation_loss = float('inf')    # Set the BVL to large number
+        self.best_training_loss = float('inf')    # Set the BTL to large number
+
+        # marking the flag object with these information
+        class FlagsObject(object):
+            pass
+        flags = FlagsObject()
+        field_list = ['dim_g', 'dim_s', 'linear', 'skip_connection', 'skip_head', 'dropout']
+        for field in field_list:
+            setattr(flags, field, eval(field))
+        # flags.dim_g, flags.dim_s, flags.feature_channel_num, flags.nhead_encoder, flags.dim_fc_encoder, 
+        # flags.num_encoder_layer, flags.head_linear, flags.tail_linear, flags.sequence_length, 
+        # flags.model_name = dim_g, dim_s, feature_channel_num, nhead_encoder, dim_fc_encoder,num_encoder_layer, 
+        # head_linear, tail_linear, sequence_length, model_name
+        self.flags = flags
+        
+        self.model = self.create_model()
 
     def create_model(self):
         """
-        Function to create the network module from provided model fn and flags
+        Function to create the network module
         :return: the created nn module
         """
-        model = self.model_fn(self.flags)
-        #summary(model, input_size=(128, 8))
+        model = Forward(self.flags)
         print(model)
         return model
 
-    def make_loss(self, logit=None, labels=None):
+    def make_loss(self, logit=None, labels=None, G=None):
         """
         Create a tensor that represents the loss. This is consistant both at training time \
         and inference time for Backward model
-        :param logit: The output of the network
+        :param logit: The output of the network, the predicted geometry
+        :param labels: The ground truth labels, the Truth geometry
+        :param boundary: The boolean flag indicating adding boundary loss or not
+        :param z_log_var: The log variance for VAE kl_loss
+        :param z_mean: The z mean vector for VAE kl_loss
         :return: the total loss
         """
-        if logit is None:
-            return None
-        MSE_loss = nn.functional.mse_loss(logit, labels)          # The MSE Loss of the
-        BDY_loss = 0 # Implemenation later in the backward propagation model
-        return MSE_loss + BDY_loss
+        MSE_loss = nn.functional.mse_loss(logit, labels, reduction='mean')          # The MSE Loss
+        BDY_loss = 0
+        if G is not None:         # This is using the boundary loss
+            X_range, X_lower_bound, X_upper_bound = self.get_boundary_lower_bound_uper_bound()
+            X_mean = (X_lower_bound + X_upper_bound) / 2        # Get the mean
+            relu = torch.nn.ReLU()
+            BDY_loss_all = 1 * relu(torch.abs(G - self.build_tensor(X_mean)) - 0.5 * self.build_tensor(X_range))
+        self.MSE_loss = MSE_loss
+        self.Boundary_loss = BDY_loss
+        return torch.add(MSE_loss, BDY_loss)
 
-    def make_optimizer(self):
+    def make_optimizer(self, optim, lr, reg_scale):
         """
-        Make the corresponding optimizer from the flags. Only below optimizers are allowed. Welcome to add more
+        Make the corresponding optimizer from the Only below optimizers are allowed. Welcome to add more
         :return:
         """
-        if self.flags.optim == 'Adam':
-            op = torch.optim.Adam(self.model.parameters(), lr=self.flags.lr, weight_decay=self.flags.reg_scale)
-        elif self.flags.optim == 'RMSprop':
-            op = torch.optim.RMSprop(self.model.parameters(), lr=self.flags.lr, weight_decay=self.flags.reg_scale)
-        elif self.flags.optim == 'SGD':
-            op = torch.optim.SGD(self.model.parameters(), lr=self.flags.lr, weight_decay=self.flags.reg_scale)
+        if optim == 'Adam':
+            op = torch.optim.Adam(self.model.parameters(), lr=lr, weight_decay=reg_scale)
+        elif optim == 'RMSprop':
+            op = torch.optim.RMSprop(self.model.parameters(), lr=lr, weight_decay=reg_scale)
+        elif optim == 'SGD':
+            op = torch.optim.SGD(self.model.parameters(), lr=lr, weight_decay=reg_scale)
         else:
             raise Exception("Your Optimizer is neither Adam, RMSprop or SGD, please change in param or contact Ben")
         return op
-
-    def make_lr_scheduler(self):
+    
+    def make_lr_scheduler(self, optm, lr_scheduler_name, lr_decay_rate, warm_restart_T_0=50):
         """
         Make the learning rate scheduler as instructed. More modes can be added to this, current supported ones:
         1. ReduceLROnPlateau (decrease lr when validation error stops improving
         :return:
         """
-        return lr_scheduler.ReduceLROnPlateau(optimizer=self.optm, mode='min',
-                                              factor=self.flags.lr_decay_rate,
+        if lr_scheduler_name == 'warm_restart':
+            return lr_scheduler.CosineAnnealingWarmRestarts(optm, warm_restart_T_0, T_mult=1, eta_min=0, last_epoch=-1, verbose=False) 
+        elif lr_scheduler_name == 'reduce_plateau':
+            return lr_scheduler.ReduceLROnPlateau(optimizer=optm, mode='min',
+                                              factor=lr_decay_rate,
                                               patience=10, verbose=True, threshold=1e-4)
 
     def save(self):
@@ -94,84 +119,88 @@ class Network(object):
         Saving the model to the current check point folder with name best_model_forward.pt
         :return: None
         """
-        #torch.save(self.model.state_dict, os.path.join(self.ckpt_dir, 'best_model_state_dict.pt'))
+        # torch.save(self.model.state_dict, os.path.join(self.ckpt_dir, 'best_model_state_dict.pt'))
         torch.save(self.model, os.path.join(self.ckpt_dir, 'best_model_forward.pt'))
-
-    def load(self):
+   
+    def load_model(self, pre_trained_model=None, model_directory=None):
         """
         Loading the model from the check point folder with name best_model_forward.pt
         :return:
         """
-        #self.model.load_state_dict(torch.load(os.path.join(self.ckpt_dir, 'best_model_state_dict.pt')))
-        self.model = torch.load(os.path.join(self.ckpt_dir, 'best_model_forward.pt'))
+        if pre_trained_model is None:       # Loading the trained model
+            if model_directory is None:
+                model_directory = self.ckpt_dir
+            # self.model.load_state_dict(torch.load(os.path.join(self.ckpt_dir, 'best_model_state_dict.pt')))
+            self.model = torch.load(os.path.join(model_directory, 'best_model_forward.pt'))
+            print("You have successfully loaded the model from ", model_directory)
+        else:       # Loading the pretrained model from the internet
+            print("You have successfully loaded the pretrained model for ", pre_trained_model)
 
-    def train(self):
+            return 0
+
+
+    def train(self, train_loader, test_loader, epochs=500, optm='Adam', reg_scale=1e-4,
+            lr=1e-4, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.2, eval_step=10,
+            stop_threshold=1e-7):
         """
         The major training function. This would start the training using information given in the flags
         :return: None
         """
+        print("Starting training now")
         cuda = True if torch.cuda.is_available() else False
         if cuda:
             self.model.cuda()
 
         # Construct optimizer after the model moved to GPU
-        self.optm = self.make_optimizer()
-        self.lr_scheduler = self.make_lr_scheduler()
+        self.optm = self.make_optimizer(optm, lr, reg_scale)
+        self.lr_scheduler = self.make_lr_scheduler(self.optm, lr_scheduler_name, lr_decay_rate)
 
-        for epoch in range(self.flags.train_step):
-            # print("This is training Epoch {}".format(epoch))
+        # Time keeping
+        tk = time_keeper(time_keeping_file=os.path.join(self.ckpt_dir, 'training time.txt'))
+        
+        for epoch in range(epochs):
             # Set to Training Mode
-            train_loss = []
-            train_loss_eval_mode_list = []
+            train_loss = 0
             self.model.train()
-            for j, (geometry, spectra) in enumerate(self.train_loader):
+            for j, (geometry, spectra) in enumerate(train_loader):
                 if cuda:
                     geometry = geometry.cuda()                          # Put data onto GPU
                     spectra = spectra.cuda()                            # Put data onto GPU
                 self.optm.zero_grad()                               # Zero the gradient first
-                logit = self.model(geometry)                        # Get the output
-                # print("logit type:", logit.dtype)
-                # print("spectra type:", spectra.dtype)
-                loss = self.make_loss(logit, spectra)              # Get the loss tensor
-                loss.backward()                                # Calculate the backward gradients
-                # torch.nn.utils.clip_grad_value_(self.model.parameters(), 10)
+                S_pred = self.model(geometry)
+                loss = self.make_loss(logit=S_pred, labels=spectra)
+                loss.backward()                                     # Calculate the backward gradients
                 self.optm.step()                                    # Move one step the optimizer
-                train_loss.append(np.copy(loss.cpu().data.numpy()))                                  # Aggregate the loss
-
-                #############################################
-                # Extra test for err_test < err_train issue #
-                #############################################
-                self.model.eval()
-                logit = self.model(geometry)  # Get the output
-                loss = self.make_loss(logit, spectra)  # Get the loss tensor
-                train_loss_eval_mode_list.append(np.copy(loss.cpu().data.numpy()))
-                self.model.train()
+                train_loss += loss.cpu().data.numpy()                                  # Aggregate the loss
+                del S_pred, loss
 
             # Calculate the avg loss of training
-            train_avg_loss = np.mean(train_loss)
-            train_avg_eval_mode_loss = np.mean(train_loss_eval_mode_list)
+            train_avg_loss = train_loss / (j + 1)
+            # Recording the best training loss
+            if train_avg_loss < self.best_training_loss:
+                self.best_training_loss = train_avg_loss
 
-            if epoch % self.flags.eval_step == 0:                        # For eval steps, do the evaluations and tensor board
+            if epoch % eval_step == 0:                      # For eval steps, do the evaluations and tensor board
                 # Record the training loss to the tensorboard
-                #train_avg_loss = train_loss.data.numpy() / (j+1)
-                self.log.add_scalar('Loss/train', train_avg_loss, epoch)
-                self.log.add_scalar('Loss/train_eval_mode', train_avg_eval_mode_loss, epoch)
+                self.log.add_scalar('Loss/total_train', train_avg_loss, epoch)
 
                 # Set to Evaluation Mode
                 self.model.eval()
                 print("Doing Evaluation on the model now")
-                test_loss = []
-                for j, (geometry, spectra) in enumerate(self.test_loader):  # Loop through the eval set
+                test_loss = 0
+                for j, (geometry, spectra) in enumerate(test_loader):  # Loop through the eval set
                     if cuda:
                         geometry = geometry.cuda()
                         spectra = spectra.cuda()
-                    logit = self.model(geometry)
-                    loss = self.make_loss(logit, spectra)                   # compute the loss
-                    test_loss.append(np.copy(loss.cpu().data.numpy()))                                       # Aggregate the loss
+
+                    S_pred = self.model(geometry)
+                    loss = self.make_loss(logit=S_pred, labels=spectra)
+                    test_loss += loss.cpu().data.numpy()                                       # Aggregate the loss
+                    del loss, S_pred
 
                 # Record the testing loss to the tensorboard
-                test_avg_loss = np.mean(test_loss)
-                self.log.add_scalar('Loss/test', test_avg_loss, epoch)
+                test_avg_loss = test_loss/ (j+1)
+                self.log.add_scalar('Loss/total_test', test_avg_loss, epoch)
 
                 print("This is Epoch %d, training loss %.5f, validation loss %.5f" \
                       % (epoch, train_avg_loss, test_avg_loss ))
@@ -179,80 +208,88 @@ class Network(object):
                 # Model improving, save the model down
                 if test_avg_loss < self.best_validation_loss:
                     self.best_validation_loss = test_avg_loss
-                    self.save()
                     print("Saving the model down...")
+                    self.save()
 
-                    if self.best_validation_loss < self.flags.stop_threshold:
+                    if self.best_validation_loss < stop_threshold:
                         print("Training finished EARLIER at epoch %d, reaching loss of %.5f" %\
                               (epoch, self.best_validation_loss))
-                        return None
+                        break
 
             # Learning rate decay upon plateau
             self.lr_scheduler.step(train_avg_loss)
-        self.log.close()
-
-    def evaluate(self, save_dir='data/'):
-        self.load()                             # load the model as constructed
+        tk.record(1)                # Record the total time of the training peroid
+    
+    def __call__(self, test_X, batch_size=512):
+        """
+        This is to call this model to do testing, 
+        :param: test_X: The testing X to be input to the model
+        """
+        # put model to GPU if cuda available
         cuda = True if torch.cuda.is_available() else False
         if cuda:
             self.model.cuda()
-        self.model.eval()                       # Evaluation mode
+        
+        # Converting the numpy into cuda
+        #if isinstance(test_X, np.ndarray):
+        #    print('your input is an numpy array, converting to an tensor for you')
+        #    test_X = torch.tensor(test_X).cuda()
+        
+        # Make the model to eval mode
+        self.model.eval()
 
+        # Preparing for eval
+        Ypred = None
+        test_loader = get_data_into_loaders_only_x(test_X)
+
+        # Partitioning the model output into small batches to avoid RAM overflow
+        for j, geometry in enumerate(test_loader):  # Loop through the eval set
+            if cuda:
+                geometry = geometry.cuda()
+            # output the Ypred
+            Ypred_batch = self.model(geometry).cpu().data.numpy()
+            if Ypred is None:
+                Ypred = Ypred_batch
+            else:
+                Ypred = np.concatenate([Ypred, Ypred_batch], axis=0)
+        print('Inference finished, result in ypred shape', np.shape(Ypred))
+        return Ypred
+
+    def evaluate(self, test_x, test_y,  save_dir='data/', prefix=''):
+        # Make sure there is a place for the evaluation
+        if not os.path.isdir(save_dir):
+            os.makedirs(save_dir)
+        
+        # Put things on conda
+        cuda = True if torch.cuda.is_available() else False
+        if cuda:
+            self.model.cuda()
+        
+        # Set to evaluation mode for batch_norm layers
+        self.model.eval()
+        
+        saved_model_str = prefix
         # Get the file names
-        Ypred_file = os.path.join(save_dir, 'test_Ypred_{}.csv'.format(self.saved_model))
-        Xtruth_file = os.path.join(save_dir, 'test_Xtruth_{}.csv'.format(self.saved_model))
-        Ytruth_file = os.path.join(save_dir, 'test_Ytruth_{}.csv'.format(self.saved_model))
-        # Xpred_file = os.path.join(save_dir, 'test_Xpred_{}.csv'.format(self.saved_model))  # For pure forward model, there is no Xpred
+        Ypred_file = os.path.join(save_dir, 'test_Ypred_{}.csv'.format(saved_model_str))
+        Xtruth_file = os.path.join(save_dir, 'test_Xtruth_{}.csv'.format(saved_model_str))
+        Ytruth_file = os.path.join(save_dir, 'test_Ytruth_{}.csv'.format(saved_model_str))
+
+        tk = time_keeper(os.path.join(save_dir, 'evaluation_time.txt'))
+
+        test_loader = get_test_data_into_loaders(test_x, test_y)
 
         # Open those files to append
-        with open(Xtruth_file, 'a') as fxt,open(Ytruth_file, 'a') as fyt, open(Ypred_file, 'a') as fyp:
-            # Loop through the eval data and evaluate
-            for ind, (geometry, spectra) in enumerate(self.test_loader):
+        with open(Xtruth_file, 'a') as fxt,open(Ytruth_file, 'a') as fyt,\
+                open(Ypred_file, 'a') as fyp:
+            for j, (geometry, spectra) in enumerate(test_loader):
                 if cuda:
                     geometry = geometry.cuda()
                     spectra = spectra.cuda()
-                logits = self.model(geometry)
-                np.savetxt(fxt, geometry.cpu().data.numpy(), fmt='%.3f')
-                np.savetxt(fyt, spectra.cpu().data.numpy(), fmt='%.3f')
-                np.savetxt(fyp, logits.cpu().data.numpy(), fmt='%.3f')
-        return Ypred_file, Ytruth_file
+                Ypred = self.model(geometry).cpu().data.numpy()
+                np.savetxt(fxt, geometry.cpu().data.numpy())
+                np.savetxt(fyt, spectra.cpu().data.numpy())
+                np.savetxt(fyp, Ypred)
+        tk.record(1)                # Record the total time of the eval period
 
-    def compare_spectra(self, Ypred, Ytruth, T=None, title=None, figsize=[15, 5],
-                        T_num=10, E1=None, E2=None, N=None, K=None, eps_inf=None):
-        """
-        Function to plot the comparison for predicted spectra and truth spectra
-        :param Ypred:  Predicted spectra, this should be a list of number of dimension 300, numpy
-        :param Ytruth:  Truth spectra, this should be a list of number of dimension 300, numpy
-        :param title: The title of the plot, usually it comes with the time
-        :param figsize: The figure size of the plot
-        :return: The identifier of the figure
-        """
-        # Make the frequency into real frequency in THz
-        fre_low = 0.8
-        fre_high = 1.5
-        frequency = fre_low + (fre_high - fre_low) / len(Ytruth) * np.arange(300)
-        f = plt.figure(figsize=figsize)
-        plt.plot(frequency, Ypred, label='Pred')
-        plt.plot(frequency, Ytruth, label='Truth')
-        if T is not None:
-            plt.plot(frequency, T, linewidth=1, linestyle='--')
-        if E2 is not None:
-            for i in range(np.shape(E2)[0]):
-                plt.plot(frequency, E2[i, :], linewidth=1, linestyle=':', label="E2" + str(i))
-        if E1 is not None:
-            for i in range(np.shape(E1)[0]):
-                plt.plot(frequency, E1[i, :], linewidth=1, linestyle='-', label="E1" + str(i))
-        if N is not None:
-            plt.plot(frequency, N, linewidth=1, linestyle=':', label="N")
-        if K is not None:
-            plt.plot(frequency, K, linewidth=1, linestyle='-', label="K")
-        if eps_inf is not None:
-            plt.plot(frequency, np.ones(np.shape(frequency)) * eps_inf, label="eps_inf")
-        # plt.ylim([0, 1])
-        plt.legend()
-        #plt.xlim([fre_low, fre_high])
-        plt.xlabel("Frequency (THz)")
-        plt.ylabel("Transmittance")
-        if title is not None:
-            plt.title(title)
-        return f
+        MSE = plotMSELossDistrib(Ypred_file, Ytruth_file)
+        return MSE

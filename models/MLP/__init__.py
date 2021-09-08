@@ -1,4 +1,4 @@
-from class_wrapper import Network
+from . import class_wrapper_updated
 print("?MLP is all you need?")
 
-DukeMLP = Network
+DukeMLP = class_wrapper_updated.Network

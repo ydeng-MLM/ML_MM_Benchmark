@@ -80,12 +80,12 @@ def load_Color(normalize=False, batch_size=1024, rand_seed=0, test_ratio=0.2):
     # Load the Particle dataset
     print("Loading Color")
     # Read the training/validation data
-    data_x = pickle.load(open(os.path.join('Color', '100000', 'training set.pkl'), "rb"))['thickness']
-    data_y = pickle.load(open(os.path.join('Color', '100000', 'training set.pkl'), "rb"))['XYZ']
+    data_x = pickle.load(open(os.path.join('Color', '100000', 'training set.pkl'), "rb"))['thickness'].astype('float32')
+    data_y = pickle.load(open(os.path.join('Color', '100000', 'training set.pkl'), "rb"))['XYZ'].astype('float32')
 
     # Read the test data
-    test_x = pickle.load(open(os.path.join('Color', '100000', 'validation set.pkl'), "rb"))['thickness']
-    test_y = pickle.load(open(os.path.join('Color', '100000', 'validation set.pkl'), "rb"))['XYZ']
+    test_x = pickle.load(open(os.path.join('Color', '100000', 'validation set.pkl'), "rb"))['thickness'].astype('float32')
+    test_y = pickle.load(open(os.path.join('Color', '100000', 'validation set.pkl'), "rb"))['XYZ'].astype('float32')
     
     # Normalize the dataset (with the same normalization with training and testing)
     if normalize:
