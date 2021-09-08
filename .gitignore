@@ -2,6 +2,11 @@
 
 *temp
 
+# Dataset files
+Nano/
+ADM/
+Color/
+
 # The huge data folder
 *Data
 Data/
@@ -23,6 +28,8 @@ datasets/
 **.err
 **.out
 **pidfile.txt
+**event**
+**2021**  # Temporary models trained
 
 # Visualization files that should be locally run and not shared
 **.ipynb

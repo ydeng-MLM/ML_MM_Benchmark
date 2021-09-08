@@ -216,6 +216,7 @@ if __name__ == '__main__':
     # torch.cuda.manual_seed(1)
     # Read the parameters to be set
     flags = flag_reader.read_flag()
+    print(flags)
 
     #hyperswipe()
     #hyperswipe_lr_decay()
@@ -223,12 +224,12 @@ if __name__ == '__main__':
     # Call the train from flag function
     #retrain_enc_position_sweep(0, 6)
     #retrain_enc_position_sweep(0, 7)
-    #training_from_flag(flags)
+    training_from_flag(flags)
 
     # Do the retraining for all the data set to get the training 
     #for i in range(10):
     #retrain_different_dataset('best_color_retrain_2')
-    retrain_different_dataset(3)
+    #retrain_different_dataset(3)
     #retrain_different_dataset('All_MLP_head_0')
     
     #retrain_from_model('ALL_MLP_tail/retrain_encoder_pos_sweep_head0_tail_8Yang')
