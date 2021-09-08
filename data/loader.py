@@ -5,6 +5,7 @@ import pandas as pd
 from torch.utils.data import Dataset
 from sklearn.model_selection import train_test_split
 import torch
+import pickle
 
 def load_ADM(normalize=False, batch_size=1024, rand_seed=0, test_ratio=0.2):
     """
@@ -78,16 +79,14 @@ def load_Color(normalize=False, batch_size=1024, rand_seed=0, test_ratio=0.2):
     """
     # Load the Particle dataset
     print("Loading Color")
-
-    ##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!YANG CHANGE THIS PART!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     # Read the training/validation data
-    data_x = pd.read_csv(os.path.join('Color', 'data_g.csv'), header=None).astype('float32').values
-    data_y = pd.read_csv(os.path.join('Color', 'data_s.csv'), header=None).astype('float32').values
-    # Read the test data
-    test_x = pd.read_csv(os.path.join('Color', 'testset', 'test_g.csv'), header=None).astype('float32').values
-    test_y = pd.read_csv(os.path.join('Color', 'testset', 'test_s.csv'), header=None).astype('float32').values
-    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    data_x = pickle.load(open(os.path.join('Color', '100000', 'training set.pkl'), "rb"))['thickness']
+    data_y = pickle.load(open(os.path.join('Color', '100000', 'training set.pkl'), "rb"))['XYZ']
 
+    # Read the test data
+    test_x = pickle.load(open(os.path.join('Color', '100000', 'validation set.pkl'), "rb"))['thickness']
+    test_y = pickle.load(open(os.path.join('Color', '100000', 'validation set.pkl'), "rb"))['XYZ']
+    
     # Normalize the dataset (with the same normalization with training and testing)
     if normalize:
         data_x, x_max, x_min = normalize_np(data_x)
