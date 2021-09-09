@@ -112,7 +112,7 @@ model= DukeTransformer(dim_g, dim_s, feature_channel_num=32, nhead_encoder=8,
 
 # Model training code
 MLP:
-model.train_(self, train_loader, test_loader, epochs=500, optm='Adam', weight_decay=1e-4,
+model.train_(train_loader, test_loader, epochs=500, optm='Adam', weight_decay=1e-4,
             lr=1e-4, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.2, eval_step=10,
             stop_threshold=1e-7)
 Transformer:
@@ -128,7 +128,7 @@ model.load_model(pre_trained_model='Particle'\'AMD'\'Color'\None,
 pred_Y = model(test_X)
 
 # Model evaluation code: Give it test_X, test_Y, output MSE and generate a plot of MSE histogram in \data
-MSE = model.evaluate(test_x, test_y, save_dir'data/')
+MSE = model.evaluate(test_x, test_y, save_dir='data/')
 
 ```
 
