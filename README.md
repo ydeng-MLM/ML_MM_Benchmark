@@ -97,14 +97,25 @@ from models.MLP import DukeMLP
 from models.Transformer import DukeTransformer
 
 # Defining all the models here (We highly recommend training the models one by one due to GPU RAM constraints
+MLP:
+model = DukeMLP(dim_g=3, dim_s=3, linear=[500, 500, 500, 500, 500, 500], skip_connection=False, skip_head=0, dropout=0, model_name=None,
+                ckpt_dir=os.path.join(os.path.abspath(''), 'models','MLP'))
+Transformer:
 model= DukeTransformer(dim_g, dim_s, feature_channel_num=32, nhead_encoder=8, 
                         dim_fc_encoder=64, num_encoder_layer=6, head_linear=None, 
                         tail_linear=None, sequence_length=8, model_name=None, 
                         ckpt_dir=os.path.join(os.path.abspath(''), 'models','Transformer'))
+
+
 # model = DukeMLP(...)
 # model = DukeMIXER(...)
 
 # Model training code
+MLP:
+model.train_(self, train_loader, test_loader, epochs=500, optm='Adam', weight_decay=1e-4,
+            lr=1e-4, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.2, eval_step=10,
+            stop_threshold=1e-7)
+Transformer:
 model.train(train_loader, test_loader, epochs=500, optm='Adam', reg_scale=5e-4, lr=1e-3, 
                         lr_schedueler_name='reduce_plateau',lr_decay_rate=0.3, eval_step=10)
 
