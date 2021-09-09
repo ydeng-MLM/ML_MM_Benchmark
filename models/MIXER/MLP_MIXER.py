@@ -7,6 +7,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 
 from einops.layers.torch import Rearrange
 
@@ -150,13 +151,16 @@ class MonsterFB(nn.Module):
     '''
         OOP for the model that combines and Mixer and MLP layers
     '''
-    def __init__(self,input_dim,output_dim,mlp_dim,patch_size,mixer_layer_num, \
+    def __init__(self,dim_g,dim_s,mlp_dim,patch_size,mixer_layer_num, \
                 embed_dim=128, token_dim=128, channel_dim=256, \
                 mlp_layer_num_front=3,mlp_layer_num_back=3,dropout=0., \
                 device=None, stop_threshold=1e-7, \
-                ckpt_dir= os.path.join(os.path.abspath(''), 'models','Transformer')):
+                log_mode=False, ckpt_dir= os.path.join(os.path.abspath(''), 'models','Mixer') \
+                ):
         super().__init__()
 
+        input_dim = dim_g
+        output_dim = dim_s
         # GPU device
         if not device:
           self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -165,6 +169,7 @@ class MonsterFB(nn.Module):
 
         self.stop_threshold = stop_threshold
         self.ckpt_dir = ckpt_dir
+        self.log = SummaryWriter(self.ckpt_dir)
 
         # MLP layers in front
         sequence1=[nn.Linear(input_dim,mlp_dim),nn.ReLU(),nn.Dropout(dropout)]
@@ -205,7 +210,35 @@ class MonsterFB(nn.Module):
 
         return prediction
 
-    def evaluate(self,x,y=None,criterion=None):
+    def evaluate(self, test_x, test_y,  save_dir='data/', prefix=''):
+        # Make sure there is a place for the evaluation
+        if not os.path.isdir(save_dir):
+            os.makedirs(save_dir)
+        
+        saved_model_str = prefix
+        # Get the file names
+        Ypred_file = os.path.join(save_dir, 'test_Ypred_{}.csv'.format(saved_model_str))
+        Xtruth_file = os.path.join(save_dir, 'test_Xtruth_{}.csv'.format(saved_model_str))
+        Ytruth_file = os.path.join(save_dir, 'test_Ytruth_{}.csv'.format(saved_model_str))
+
+        test_loader = DataLoader(helper.MyDataset(test_x,test_y))
+
+        # Open those files to append
+        with open(Xtruth_file, 'a') as fxt,open(Ytruth_file, 'a') as fyt,\
+                open(Ypred_file, 'a') as fyp:
+            for j, (geometry, spectra) in enumerate(test_loader):
+                
+                geometry = geometry.to(self.device)
+                spectra = spectra.to(self.device)
+                Ypred = self.forward(geometry).cpu().data.numpy()
+                np.savetxt(fxt, geometry.cpu().data.numpy())
+                np.savetxt(fyt, spectra.cpu().data.numpy())
+                np.savetxt(fyp, Ypred)
+
+        MSE = helper.plotMSELossDistrib(Ypred_file, Ytruth_file)
+        return MSE
+
+    def evaluate(self,x,y,criterion=None,):
         self.eval()
         prediction = self.forward(x.to(self.device))
         if y is not None:
@@ -216,71 +249,79 @@ class MonsterFB(nn.Module):
           return error
         return prediction
 
-    def load_model(self,dataset):
-      '''
-      TO DO
-      '''
-      pass
+    def load_model(self, pre_trained_model=None, model_directory=None):
+        """
+        Loading the model from the check point folder with name best_model_forward.pt
+        :return:
+        """
+        if pre_trained_model is None:       # Loading the trained model
+            if model_directory is None:
+                model_directory = self.ckpt_dir
+            # self.model.load_state_dict(torch.load(os.path.join(self.ckpt_dir, 'best_model_state_dict.pt')))
+            self.model = torch.load(os.path.join(model_directory, 'best_model_forward.pt'))
+            print("You have successfully loaded the model from ", model_directory)
+        else:       # Loading the pretrained model from the internet
+            print("You have successfully loaded the pretrained model for ", pre_trained_model)
 
     def train_(self,trainloader,testloader, \
     batch_size=128,criterion=None,epochs=300,  eval_step=10, \
-    optm='Adam', lr=1e-4, reg_scale=5e-4, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.3):
-      '''
-      Parameters: 
-      (1) trainloader: data loader of training data
-      (2) testloader: data loader of test/val data
-      '''
+    optm='Adam', lr=1e-4, weight_decay=5e-4, lr_scheduler_name=None, lr_decay_rate=0.3):
+        '''
+        Parameters: 
+        (1) trainloader: data loader of training data
+        (2) testloader: data loader of test/val data
+        '''
 
-      # Construct optimizer after the model moved to GPU
-      optimizer = self.make_optimizer(optim=optm, lr=lr, reg_scale=reg_scale)
-      scheduler = self.make_lr_scheduler(optimizer, lr_scheduler_name, lr_decay_rate)
-      
-      if not criterion:
-        criterion = nn.MSELoss()
+        # Construct optimizer after the model moved to GPU
+        optimizer = self.make_optimizer(optim=optm, lr=lr, reg_scale=weight_decay)
+        scheduler = self.make_lr_scheduler(optimizer, lr_scheduler_name, lr_decay_rate)
+        
+        if not criterion:
+          criterion = nn.MSELoss()
 
-      
-      trainlosses=[]
-      vallosses=[]
-      minvalloss = math.inf
+        
+        trainlosses=[]
+        vallosses=[]
+        minvalloss = math.inf
 
-      self.to(self.device)
-      for epoch in tqdm(range(epochs)):
+        self.to(self.device)
+        for epoch in tqdm(range(epochs)):
 
-          self.train()
-          for data in trainloader:
-              x, y = data
+            self.train()
+            for data in trainloader:
+                x, y = data
 
-              optimizer.zero_grad()
-              predict = self.forward(x.to(self.device))
-              loss = criterion(predict,y.to(self.device))
-              loss.backward()
+                optimizer.zero_grad()
+                predict = self.forward(x.to(self.device))
+                loss = criterion(predict,y.to(self.device))
+                loss.backward()
 
-              optimizer.step()
-          
-          if epoch % eval_step == 0:                      # For eval steps, do the evaluations and tensor board
-              trainloss = helper.eval_loader(self,trainloader,self.device,criterion)
-              trainlosses.append(trainloss)
-              valloss = helper.eval_loader(self,testloader,self.device,criterion)
-              vallosses.append(valloss)
-              
-              if valloss < minvalloss:
-                  minvalloss = valloss
-                  self.minvalloss = minvalloss
-                  self.save()
-                  print("Saving the model down...")
+                optimizer.step()
+            
+            if epoch % eval_step == 0:                      # For eval steps, do the evaluations and tensor board
+                trainloss = helper.eval_loader(self,trainloader,self.device,criterion)
+                trainlosses.append(trainloss)
+                valloss = helper.eval_loader(self,testloader,self.device,criterion)
+                vallosses.append(valloss)
+                self.log.add_scalar('Loss/total_train', trainloss, epoch)
+                self.log.add_scalar('Loss/total_test', valloss, epoch)
+                
+                if valloss < minvalloss:
+                    minvalloss = valloss
+                    self.minvalloss = minvalloss
+                    self.save()
+                    print("Saving the model down...")
 
-                  if minvalloss < self.stop_threshold:
-                    print("Training finished EARLIER at epoch %d, reaching loss of %.5f" %\
-                            (epoch, self.minvalloss))
-                    break
+                    if minvalloss < self.stop_threshold:
+                      print("Training finished EARLIER at epoch %d, reaching loss of %.5f" %\
+                              (epoch, self.minvalloss))
+                      break
 
-              print("This is Epoch %d, training loss %.5f, validation loss %.5f" \
-                    % (epoch, trainloss, valloss))
-          
-          if scheduler:
-            scheduler.step()
-
-      return trainlosses,vallosses
+                print("This is Epoch %d, training loss %.5f, validation loss %.5f" \
+                      % (epoch, trainloss, valloss))
+            
+            if scheduler:
+              scheduler.step()
 
     def save(self):
         """
@@ -302,6 +343,8 @@ class MonsterFB(nn.Module):
             return lr_scheduler_name.ReduceLROnPlateau(optimizer=optm, mode='min',
                                               factor=lr_decay_rate,
                                               patience=10, verbose=True, threshold=1e-4)
+        else:
+            return None
 
     def make_optimizer(self, optim, lr, reg_scale):
         """

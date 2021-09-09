@@ -88,3 +88,26 @@ def normalize_np(x, x_max_list=None, x_min_list=None):
             new_x_max_list.append(x_max)
             new_x_min_list.append(x_min)
     return x, np.array(new_x_max_list), np.array(new_x_min_list)
+
+def plotMSELossDistrib(pred_file, truth_file, save_dir='data/'):
+    """
+    Function to plot the MSE distribution histogram
+    :param: pred_file: The Y prediction file
+    :param: truth_file: The Y truth file
+    :param: flags: The flags of the model/evaluation
+    :param: save_dir: The directory to save the plot
+    """
+    mae, mse = compare_truth_pred(pred_file, truth_file)
+    plt.figure(figsize=(12, 6))
+    plt.hist(mse, bins=100)
+    plt.xlabel('Mean Squared Error')
+    plt.ylabel('cnt')
+    plt.suptitle('(Avg MSE={:.4e}, 25%={:.3e}, 75%={:.3e})'.format(np.mean(mse), np.percentile(mse, 25), np.percentile(mse, 75)))
+    if isinstance(pred_file, str):
+        eval_model_str = pred_file.split('Ypred')[-1].split('.')[0]
+    else:
+        eval_model_str = 'MSE_unknon_name'
+    plt.savefig(os.path.join(save_dir,
+                            '{}.png'.format(eval_model_str)))
+    print('(Avg MSE={:.4e})'.format(np.mean(mse)))
+    return np.mean(mse)
