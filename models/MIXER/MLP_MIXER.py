@@ -12,7 +12,6 @@ from torch.utils.tensorboard import SummaryWriter
 from einops.layers.torch import Rearrange
 
 from . import helper
-from . import trainer
 
 import os
 import math
@@ -170,6 +169,7 @@ class MonsterFB(nn.Module):
         self.stop_threshold = stop_threshold
         self.ckpt_dir = ckpt_dir
         self.log = SummaryWriter(self.ckpt_dir)
+        self.log_mode = log_mode
 
         # MLP layers in front
         sequence1=[nn.Linear(input_dim,mlp_dim),nn.ReLU(),nn.Dropout(dropout)]
@@ -241,17 +241,6 @@ class MonsterFB(nn.Module):
         
         return mse_error
 
-    def evaluate(self,x,y,criterion=None,):
-        self.eval()
-        prediction = self.forward(x.to(self.device))
-        if y is not None:
-          if criterion is None:
-            criterion = nn.MSELoss()
-
-          error = criterion(prediction,y)
-          return error
-        return prediction
-
     def load_model(self, pre_trained_model=None, model_directory=None):
         """
         Loading the model from the check point folder with name best_model_forward.pt
@@ -281,17 +270,13 @@ class MonsterFB(nn.Module):
         
         if not criterion:
           criterion = nn.MSELoss()
-
         
-        trainlosses=[]
-        vallosses=[]
         minvalloss = math.inf
-
         self.to(self.device)
         for epoch in tqdm(range(epochs)):
 
             self.train()
-            for data in trainloader:
+            for i,data in enumerate(trainloader):
                 x, y = data
 
                 optimizer.zero_grad()
@@ -302,18 +287,19 @@ class MonsterFB(nn.Module):
                 optimizer.step()
             
             if epoch % eval_step == 0:                      # For eval steps, do the evaluations and tensor board
+                
                 trainloss = helper.eval_loader(self,trainloader,self.device,criterion)
-                trainlosses.append(trainloss)
                 valloss = helper.eval_loader(self,testloader,self.device,criterion)
-                vallosses.append(valloss)
+               
                 self.log.add_scalar('Loss/total_train', trainloss, epoch)
                 self.log.add_scalar('Loss/total_test', valloss, epoch)
                 
                 if valloss < minvalloss:
                     minvalloss = valloss
                     self.minvalloss = minvalloss
-                    self.save()
-                    print("Saving the model down...")
+                    if self.log_mode:
+                      self.save()
+                      print("Saving the model down...")
 
                     if minvalloss < self.stop_threshold:
                       print("Training finished EARLIER at epoch %d, reaching loss of %.5f" %\
@@ -342,7 +328,7 @@ class MonsterFB(nn.Module):
         """
         if lr_scheduler_name == 'warm_restart':
             return lr_scheduler.CosineAnnealingWarmRestarts(optm, warm_restart_T_0, T_mult=1, eta_min=0, last_epoch=-1, verbose=False) 
-        elif lr_scheduler == 'reduce_plateau':
+        elif lr_scheduler_name == 'reduce_plateau':
             return lr_scheduler_name.ReduceLROnPlateau(optimizer=optm, mode='min',
                                               factor=lr_decay_rate,
                                               patience=10, verbose=True, threshold=1e-4)
