@@ -140,7 +140,7 @@ class Network(object):
 
 
     def train_(self, train_loader, test_loader, epochs=500, optm='Adam', weight_decay=1e-4,
-            lr=1e-4, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.2, eval_step=10,
+            lr=1e-4, lr_scheduler_name=None, lr_decay_rate=0.2, eval_step=10,
             stop_threshold=1e-7):
         """
         The major training function. This would start the training using information given in the flags
@@ -153,11 +153,9 @@ class Network(object):
 
         # Construct optimizer after the model moved to GPU
         self.optm = self.make_optimizer(optm, lr, weight_decay)
-        self.lr_scheduler = self.make_lr_scheduler(self.optm, lr_scheduler_name, lr_decay_rate)
+        if lr_scheduler_name is not None:
+            self.lr_scheduler = self.make_lr_scheduler(self.optm, lr_scheduler_name, lr_decay_rate)
 
-        # Time keeping
-        tk = time_keeper(time_keeping_file=os.path.join(self.ckpt_dir, 'training time.txt'))
-        
         for epoch in range(epochs):
             # Set to Training Mode
             train_loss = 0
@@ -217,9 +215,10 @@ class Network(object):
                         break
 
             # Learning rate decay upon plateau
-            self.lr_scheduler.step(train_avg_loss)
-        tk.record(1)                # Record the total time of the training peroid
-    
+            if lr_scheduler_name is not None:
+                self.lr_scheduler.step(train_avg_loss)
+        
+
     def __call__(self, test_X, batch_size=512):
         """
         This is to call this model to do testing, 
@@ -255,7 +254,7 @@ class Network(object):
         print('Inference finished, result in ypred shape', np.shape(Ypred))
         return Ypred
 
-    def evaluate(self, test_x, test_y,  save=False, save_dir='data/', prefix=''):
+    def evaluate(self, test_x, test_y,  save_output=False, save_dir='data/', prefix=''):
         # Make sure there is a place for the evaluation
         if not os.path.isdir(save_dir):
             os.makedirs(save_dir)
@@ -269,7 +268,7 @@ class Network(object):
         self.model.eval()
         
         saved_model_str = prefix
-        if save:
+        if save_output:
             # Get the file names
             Ypred_file = os.path.join(save_dir, 'test_Ypred_{}.csv'.format(saved_model_str))
             Xtruth_file = os.path.join(save_dir, 'test_Xtruth_{}.csv'.format(saved_model_str))
