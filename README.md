@@ -50,7 +50,7 @@ visible runtime
 
 ### Install Package
 ```
-pip install AEM3
+pip install AEML
 ```
 
 ### Loading data and Splitting
@@ -69,8 +69,8 @@ ADM refers to the All-dielectric metasurface dataset. Particle dataset refers to
 Although we used AEM dataset for benchmarking, this suite is open and easily adaptable to a wide range of applications in the scientific computing community. To test your own custom dataset, simply normalize (or not, your choice, our loader would not normalize your dataset) and put your dataset into the Custom folder with the format: data_x.csv, data_y.csv where each file contains the input and output of the application. The shape should be [#Simulations, Dim_x] and [#Simulations, Dim_y] and separated by comma. Note that there should not be any header in the csv.
 
 ```
-import AEM3
-from AEM3.data import ADM, Particle, Color, load_custom_dataset
+import AEML
+from AEML.data import ADM, Particle, Color, load_custom_dataset
 
 # Load our pre-defined dataset
 train_loader, test_loader, test_x, test_y =ADM/Particle/Color(normalize=True/False, batch_size=1024)    # Loading the ADM dataset
@@ -92,14 +92,14 @@ As dscribed in section 5 in the paper, the architectures are modified slightly f
 #### Model hyper-parameter adjustment
 
 ```
-from models.Mixer import DukeMIXER
-from models.MLP import DukeMLP
-from models.Transformer import DukeTransformer
+from AEML.models.Mixer import DukeMIXER
+from AEML.models.MLP import DukeMLP
+from AEML.models.Transformer import DukeTransformer
 
 # Defining all the models here (We highly recommend training the models one by one due to GPU RAM constraints
 MLP:
-model = DukeMLP(dim_g=3, dim_s=3, linear=[500, 500, 500, 500, 500, 500], skip_connection=False, skip_head=0, dropout=0, model_name=None,
-                ckpt_dir=os.path.join(os.path.abspath(''), 'models','MLP'))
+model = DukeMLP(dim_g=3, dim_s=3, linear=[500, 500, 500, 500, 500, 500], skip_connection=False, skip_head=0, dropout=0, model_name=None)
+
 Transformer:
 model= DukeTransformer(dim_g, dim_s, feature_channel_num=32, nhead_encoder=8, 
                         dim_fc_encoder=64, num_encoder_layer=6, head_linear=None, 
