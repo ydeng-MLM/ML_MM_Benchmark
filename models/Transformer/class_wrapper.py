@@ -19,13 +19,12 @@ import pandas as pd
 from data.loader import get_data_into_loaders_only_x, get_test_data_into_loaders
 from models.Transformer.model_maker import Transformer
 from models.Transformer.utils.evaluation_helper import plotMSELossDistrib
-from models.Transformer.utils.time_recorder import time_keeper
 
 class Network(object):
     def __init__(self, dim_g, dim_s, feature_channel_num=32, nhead_encoder=8, 
                 dim_fc_encoder=64,num_encoder_layer=6, head_linear=None, 
                 tail_linear=None, sequence_length=8, model_name=None, 
-                ckpt_dir=os.path.join(os.path.abspath(''), 'models','Transformer'),
+                ckpt_dir=os.path.join(os.path.abspath(''),'Transformer_trained_results'),
                  inference_mode=False, saved_model=None):
         if head_linear is None:
             head_linear = [dim_g, sequence_length*feature_channel_num]
@@ -91,17 +90,17 @@ class Network(object):
         self.Boundary_loss = BDY_loss
         return torch.add(MSE_loss, BDY_loss)
 
-    def make_optimizer(self, optim, lr, reg_scale):
+    def make_optimizer(self, optim, lr, weight_decay):
         """
         Make the corresponding optimizer from the Only below optimizers are allowed. Welcome to add more
         :return:
         """
         if optim == 'Adam':
-            op = torch.optim.Adam(self.model.parameters(), lr=lr, weight_decay=reg_scale)
+            op = torch.optim.Adam(self.model.parameters(), lr=lr, weight_decay=weight_decay)
         elif optim == 'RMSprop':
-            op = torch.optim.RMSprop(self.model.parameters(), lr=lr, weight_decay=reg_scale)
+            op = torch.optim.RMSprop(self.model.parameters(), lr=lr, weight_decay=weight_decay)
         elif optim == 'SGD':
-            op = torch.optim.SGD(self.model.parameters(), lr=lr, weight_decay=reg_scale)
+            op = torch.optim.SGD(self.model.parameters(), lr=lr, weight_decay=weight_decay)
         else:
             raise Exception("Your Optimizer is neither Adam, RMSprop or SGD, please change in param or contact Ben")
         return op
@@ -119,13 +118,15 @@ class Network(object):
                                               factor=lr_decay_rate,
                                               patience=10, verbose=True, threshold=1e-4)
 
-    def save(self):
+    def save(self, ckpt_dir=None):
         """
         Saving the model to the current check point folder with name best_model_forward.pt
         :return: None
         """
+        if ckpt_dir is None:
+            ckpt_dir = self.ckpt_dir
         # torch.save(self.model.state_dict, os.path.join(self.ckpt_dir, 'best_model_state_dict.pt'))
-        torch.save(self.model, os.path.join(self.ckpt_dir, 'best_model_forward.pt'))
+        torch.save(self.model, os.path.join(ckpt_dir, 'best_model_forward.pt'))
    
     def load_model(self, pre_trained_model=None, model_directory=None):
         """
@@ -139,13 +140,13 @@ class Network(object):
             self.model = torch.load(os.path.join(model_directory, 'best_model_forward.pt'))
             print("You have successfully loaded the model from ", model_directory)
         else:       # Loading the pretrained model from the internet
+            print("Loading pre-trained model, if this fails, check that you have the same architecture!")
+            self.model = torch.load(os.path.join('pre_trained_models','Transformer',
+                                                pre_trained_model, 'best_model_forward.pt'))
             print("You have successfully loaded the pretrained model for ", pre_trained_model)
-
-            return 0
-
-
-    def train(self, train_loader, test_loader, epochs=500, optm='Adam', reg_scale=5e-4,
-            lr=1e-3, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.3, eval_step=10,
+            
+    def train_(self, train_loader, test_loader, save_model=False, epochs=500, optm='Adam', weight_decay=5e-4,
+            lr=1e-3, lr_scheduler_name=None, lr_decay_rate=0.3, eval_step=10,
             stop_threshold=1e-7):
         """
         The major training function. This would start the training using information given in the flags
@@ -157,12 +158,10 @@ class Network(object):
             self.model.cuda()
 
         # Construct optimizer after the model moved to GPU
-        self.optm = self.make_optimizer(optm, lr, reg_scale)
-        self.lr_scheduler = self.make_lr_scheduler(self.optm, lr_scheduler_name, lr_decay_rate)
+        self.optm = self.make_optimizer(optm, lr, weight_decay)
+        if lr_scheduler_name is not None:
+            self.lr_scheduler = self.make_lr_scheduler(self.optm, lr_scheduler_name, lr_decay_rate)
 
-        # Time keeping
-        tk = time_keeper(time_keeping_file=os.path.join(self.ckpt_dir, 'training time.txt'))
-        
         for epoch in range(epochs):
             # Set to Training Mode
             train_loss = 0
@@ -213,17 +212,18 @@ class Network(object):
                 # Model improving, save the model down
                 if test_avg_loss < self.best_validation_loss:
                     self.best_validation_loss = test_avg_loss
-                    print("Saving the model down...")
-                    self.save()
+                    if save_model:
+                        print("Saving the model down...")
+                        self.save()
 
                     if self.best_validation_loss < stop_threshold:
                         print("Training finished EARLIER at epoch %d, reaching loss of %.5f" %\
                               (epoch, self.best_validation_loss))
                         break
 
-            # Learning rate decay upon plateau
-            self.lr_scheduler.step(train_avg_loss)
-        tk.record(1)                # Record the total time of the training peroid
+            if lr_scheduler_name is not None:
+                # Learning rate decay upon plateau
+                self.lr_scheduler.step(train_avg_loss)
     
     def __call__(self, test_X, batch_size=512):
         """
@@ -260,7 +260,7 @@ class Network(object):
         print('Inference finished, result in ypred shape', np.shape(Ypred))
         return Ypred
 
-    def evaluate(self, test_x, test_y,  save_dir='data/', prefix=''):
+    def evaluate(self, test_x, test_y, save_output=False, save_dir='data/', prefix=''):
         # Make sure there is a place for the evaluation
         if not os.path.isdir(save_dir):
             os.makedirs(save_dir)
@@ -279,8 +279,6 @@ class Network(object):
         Xtruth_file = os.path.join(save_dir, 'test_Xtruth_{}.csv'.format(saved_model_str))
         Ytruth_file = os.path.join(save_dir, 'test_Ytruth_{}.csv'.format(saved_model_str))
 
-        tk = time_keeper(os.path.join(save_dir, 'evaluation_time.txt'))
-
         test_loader = get_test_data_into_loaders(test_x, test_y)
 
         # Open those files to append
@@ -294,7 +292,11 @@ class Network(object):
                 np.savetxt(fxt, geometry.cpu().data.numpy())
                 np.savetxt(fyt, spectra.cpu().data.numpy())
                 np.savetxt(fyp, Ypred)
-        tk.record(1)                # Record the total time of the eval period
+
+        if not save_output:
+            os.remove(Xtruth_file)
+            os.remove(Ypred_file)
+            os.remove(Ypred_file)
 
         MSE = plotMSELossDistrib(Ypred_file, Ytruth_file)
         return MSE
