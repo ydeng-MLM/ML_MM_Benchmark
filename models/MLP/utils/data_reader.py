@@ -8,8 +8,9 @@ import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
 from sklearn.model_selection import train_test_split
 import torch
+TEST_SET_DIR = '/scratch/sr365/ML_MM_Benchmark/testsets'
 
-def get_data_into_loaders(data_x, data_y, batch_size, DataSetClass, rand_seed=42, test_ratio=0.3):
+def get_data_into_loaders(data_x, data_y, batch_size, DataSetClass, rand_seed=0, test_ratio=0.3):
     """
     Helper function that takes structured data_x and data_y into dataloaders
     :param data_x: the structured x data
@@ -18,7 +19,12 @@ def get_data_into_loaders(data_x, data_y, batch_size, DataSetClass, rand_seed=42
     :param test_ratio: The testing ratio
     :return: train_loader, test_loader: The pytorch data loader file
     """
-    # Normalize the input
+    if test_ratio == 1:         # Test case
+        print('This is testing mode!!! Test ratio = 1')
+        test_data = DataSetClass(data_x, data_y)
+        test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size)
+        return None, test_loader
+
     x_train, x_test, y_train, y_test = train_test_split(data_x, data_y, test_size=test_ratio,
                                                         random_state=rand_seed)
     print('total number of training sample is {}, the dimension of the feature is {}'.format(len(x_train), len(x_train[0])))
@@ -35,52 +41,90 @@ def get_data_into_loaders(data_x, data_y, batch_size, DataSetClass, rand_seed=42
     return train_loader, test_loader
 
 
-def normalize_np(x):
+def normalize_np(x, x_max_list=None, x_min_list=None):
     """
     Normalize the x into [-1, 1] range in each dimension [:, i]
     :param x: np array to be normalized
     :return: normalized np array
     """
+    if x_max_list is not None: 
+        if x_min_list is None or len(x[0]) != len(x_max_list) or len(x_max_list) != len(x_min_list):
+            print("In normalize_np, your dimension does not match with provided x_max, try again")
+            quit()
+
+    new_x_max_list = []
+    new_x_min_list = []
     for i in range(len(x[0])):
-        x_max = np.max(x[:, i])
-        x_min = np.min(x[:, i])
+        if x_max_list is None:
+            x_max = np.max(x[:, i])
+            x_min = np.min(x[:, i])
+        else:
+            x_max = x_max_list[i]
+            x_min = x_min_list[i]
         x_range = (x_max - x_min ) /2.
         x_avg = (x_max + x_min) / 2.
         x[:, i] = (x[:, i] - x_avg) / x_range
         print("In normalize_np, row ", str(i), " your max is:", np.max(x[:, i]))
         print("In normalize_np, row ", str(i), " your min is:", np.min(x[:, i]))
-        assert np.max(x[:, i]) - 1 < 0.0001, 'your normalization is wrong'
-        assert np.min(x[:, i]) + 1 < 0.0001, 'your normalization is wrong'
-    return x
+        if x_max_list is None:
+            assert np.max(x[:, i]) - 1 < 0.0001, 'your normalization is wrong'
+            assert np.min(x[:, i]) + 1 < 0.0001, 'your normalization is wrong'
+            new_x_max_list.append(x_max)
+            new_x_min_list.append(x_min)
+    return x, np.array(new_x_max_list), np.array(new_x_min_list)
 
-def read_data_ADM(flags, eval_data_all=False):
-    if flags.test_ratio == 0:
-        # Read the data
-        data_dir = os.path.join(flags.data_dir, 'ADM_60k', 'eval')
-        test_x = pd.read_csv(os.path.join(data_dir, 'test_x.csv'), header=None).astype('float32').values
-        test_y = pd.read_csv(os.path.join(data_dir, 'test_y.csv'), header=None).astype('float32').values
-        test_x = normalize_np(test_x)
-        print("shape of test_x", np.shape(test_x))
-        print("shape of test_y", np.shape(test_y))
-        test_y = test_y[:,:2000]
-
-        return get_data_into_loaders(test_x, test_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
+def read_data_color_filter(flags, eval_data_all=False):
+    """
+    Data reader function for the gaussian mixture data set
+    :param flags: Input flags
+    :return: train_loader and test_loader in pytorch data set format (normalized)
+    """
 
     # Read the data
-    data_dir = os.path.join(flags.data_dir, 'ADM_60k')
+    data_dir = os.path.join(flags.data_dir, 'Color')
     data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None).astype('float32').values
     data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None).astype('float32').values
 
-    # The geometric boundary of peurifoy dataset is [30, 70], normalizing manually
-    data_x = normalize_np(data_x)
-    print("shape of data_x", np.shape(data_x))
-    data_y = data_y[:,:2000]
-    print("shape of data_y", np.shape(data_y))
-   
+    # This is to for the last test dataset
     if eval_data_all:
-        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
+        data_dir = os.path.join(TEST_SET_DIR, 'Color')
+        data_x = pd.read_csv(os.path.join(data_dir, 'test_x.csv'), header=None).astype('float32').values
+        data_y = pd.read_csv(os.path.join(data_dir, 'test_y.csv'), header=None).astype('float32').values
+        return get_data_into_loaders(data_x, data_y, flags.batch_size,  SimulatedDataSet_regress, rand_seed=flags.rand_seed,test_ratio=1)
 
-    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=flags.test_ratio)
+    print("shape of data_x", np.shape(data_x))
+    print("shape of data_y", np.shape(data_y))
+
+    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed=flags.rand_seed, test_ratio=flags.test_ratio)
+
+
+def read_data_Yang(flags, eval_data_all=False):
+    """
+    Data reader function for the gaussian mixture data set
+    :param flags: Input flags
+    :return: train_loader and test_loader in pytorch data set format (normalized)
+    """
+
+    # Read the data
+    data_dir = os.path.join(flags.data_dir, 'Yang')
+    data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None).astype('float32').values
+    data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None).astype('float32').values
+    # Normalize the dataset
+    data_x, x_max, x_min = normalize_np(data_x)
+
+    # This is to for the last test dataset
+    if eval_data_all:
+        data_dir = os.path.join(TEST_SET_DIR, 'Yang')
+        data_x = pd.read_csv(os.path.join(data_dir, 'test_x.csv'), header=None).astype('float32').values
+        data_y = pd.read_csv(os.path.join(data_dir, 'test_y.csv'), header=None).astype('float32').values
+        data_x, _, _, = normalize_np(data_x, x_max, x_min)
+        print('This is Yang dataset with data_x shape of', np.shape(data_x))
+        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed=flags.rand_seed, test_ratio=1)
+
+    print("shape of data_x", np.shape(data_x))
+    print("shape of data_y", np.shape(data_y))
+    
+    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed=flags.rand_seed, test_ratio=flags.test_ratio)
 
 def read_data_peurifoy(flags, eval_data_all=False):
     """
@@ -88,79 +132,28 @@ def read_data_peurifoy(flags, eval_data_all=False):
     :param flags: Input flags
     :return: train_loader and test_loader in pytorch data set format (normalized)
     """
-    if flags.test_ratio == 0:
-        # Read the data
-        data_dir = os.path.join(flags.data_dir, 'Peurifoy', 'eval')
-        test_x = pd.read_csv(os.path.join(data_dir, 'test_x.csv'), header=None).astype('float32').values
-        test_y = pd.read_csv(os.path.join(data_dir, 'test_y.csv'), header=None).astype('float32').values
-        test_x = (test_x-50)/20.
-        print("shape of test_x", np.shape(test_x))
-        print("shape of test_y", np.shape(test_y))
-
-        return get_data_into_loaders(test_x, test_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
-
 
     # Read the data
     data_dir = os.path.join(flags.data_dir, 'Peurifoy')
     data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None).astype('float32').values
     data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None).astype('float32').values
-
-    data_x = (data_x-50)/20.
-
-    print("shape of data_x", np.shape(data_x))
-    print("shape of data_y", np.shape(data_y))
+    # This is to for the last test dataset
     if eval_data_all:
-        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
+        data_dir = os.path.join(TEST_SET_DIR, 'Peurifoy')
+        data_x = pd.read_csv(os.path.join(data_dir, 'test_x.csv'), header=None).astype('float32').values
+        data_y = pd.read_csv(os.path.join(data_dir, 'test_y.csv'), header=None).astype('float32').values
+        data_x = (data_x - 50) / 20.
+        print('This is Perifoy dataset with data_x shape of', np.shape(data_x))
+        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed=flags.rand_seed,test_ratio=1)
 
-    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=flags.test_ratio)
-
-def read_data_color(flags, eval_data_all=False):
-    if flags.test_ratio == 0:
-        # Read the data
-        data_dir = os.path.join(flags.data_dir, 'color', 'eval')
-        test_x = pd.read_csv(os.path.join(data_dir, 'test_x.csv'), header=None).astype('float32').values
-        test_y = pd.read_csv(os.path.join(data_dir, 'test_y.csv'), header=None).astype('float32').values
-        #test_x = normalize_np(test_x)
-        print("shape of test_x", np.shape(test_x))
-        print("shape of test_y", np.shape(test_y))
-
-        return get_data_into_loaders(test_x, test_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
-
-    # Read the data
-    data_dir = os.path.join(flags.data_dir, 'color')
-    data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None).astype('float32').values
-    data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None).astype('float32').values
 
     # The geometric boundary of peurifoy dataset is [30, 70], normalizing manually
-    #data_x = normalize_np(data_x)
-    print("shape of data_x", np.shape(data_x))
-    print("shape of data_y", np.shape(data_y))
-    if eval_data_all:
-        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
-
-    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed = flags.rand_seed, test_ratio=flags.test_ratio)
-
-
-def read_data_Yang_sim(flags, eval_data_all=False):
-    """
-    Data reader function for the Yang_simulated data set
-    :param flags: Input flags
-    :return: train_loader and test_loader in pytorch data set format (normalized)
-    """
-
-    # Read the data
-    data_dir = os.path.join(flags.data_dir, 'Yang_sim', 'dataIn')
-    data_x = pd.read_csv(os.path.join(data_dir, 'data_x.csv'), header=None, sep=' ').astype('float32').values
-    data_y = pd.read_csv(os.path.join(data_dir, 'data_y.csv'), header=None, sep=' ').astype('float32').values
-
-    # This dataset is already normalized, no manual normalization needed!!!
+    data_x = (data_x - 50) / 20.
 
     print("shape of data_x", np.shape(data_x))
     print("shape of data_y", np.shape(data_y))
-    if eval_data_all:
-        return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=0.999)
 
-    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, test_ratio=flags.test_ratio)
+    return get_data_into_loaders(data_x, data_y, flags.batch_size, SimulatedDataSet_regress, rand_seed=flags.rand_seed, test_ratio=flags.test_ratio)
 
 def read_data(flags, eval_data_all=False):
     """
@@ -177,32 +170,12 @@ def read_data(flags, eval_data_all=False):
     :return:
     """
     print("In read_data, flags.data_set =", flags.data_set)
-    if flags.data_set == 'Yang':
-        print("This is a Yang dataset")
-        if flags.geoboundary[0] == -1:          # ensemble produced ones
-            print("reading from ensemble place")
-            train_loader, test_loader = read_data_ensemble_MM(flags, eval_data_all=eval_data_all)
-        else:
-            train_loader, test_loader = read_data_meta_material(x_range=flags.x_range,
-                                                                y_range=flags.y_range,
-                                                                geoboundary=flags.geoboundary,
-                                                                batch_size=flags.batch_size,
-                                                                normalize_input=flags.normalize_input,
-                                                                data_dir=flags.data_dir,
-                                                                eval_data_all=eval_data_all,
-                                                                test_ratio=flags.test_ratio)
-            print("I am reading data from:", flags.data_dir)
-        # Reset the boundary is normalized
-        if flags.normalize_input:
-            flags.geoboundary_norm = [-1, 1, -1, 1]
-    elif flags.data_set == 'ADM':
-        train_loader, test_loader = read_data_ADM(flags, eval_data_all=eval_data_all)
-    elif flags.data_set == 'Peurifoy':
+    if 'Yang' in flags.data_set or 'ADM' in flags.data_set:
+        train_loader, test_loader = read_data_Yang(flags,eval_data_all=eval_data_all)
+    elif 'Peurifoy' in  flags.data_set :
         train_loader, test_loader = read_data_peurifoy(flags,eval_data_all=eval_data_all)
-    elif flags.data_set == 'color':
-        train_loader, test_loader = read_data_color(flags, eval_data_all=eval_data_all)
-    elif flags.data_set == 'Yang_sim':
-        train_loader, test_loader =read_data_Yang_sim(flags,eval_data_all=eval_data_all)
+    elif 'olor' in flags.data_set:
+        train_loader, test_loader =read_data_color_filter(flags,eval_data_all=eval_data_all)
     else:
         sys.exit("Your flags.data_set entry is not correct, check again!")
     return train_loader, test_loader

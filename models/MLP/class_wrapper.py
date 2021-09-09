@@ -18,7 +18,7 @@ import pandas as pd
 # Own module
 from data.loader import get_data_into_loaders_only_x, get_test_data_into_loaders
 from models.MLP.model_maker import Forward
-from models.Transformer.utils.evaluation_helper import plotMSELossDistrib
+from models.MLP.utils.evaluation_helper import plotMSELossDistrib
 from models.MLP.utils.time_recorder import time_keeper
 
 class Network(object):
@@ -139,7 +139,7 @@ class Network(object):
             return 0
 
 
-    def train(self, train_loader, test_loader, epochs=500, optm='Adam', reg_scale=1e-4,
+    def train_(self, train_loader, test_loader, epochs=500, optm='Adam', weight_decay=1e-4,
             lr=1e-4, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.2, eval_step=10,
             stop_threshold=1e-7):
         """
@@ -152,7 +152,7 @@ class Network(object):
             self.model.cuda()
 
         # Construct optimizer after the model moved to GPU
-        self.optm = self.make_optimizer(optm, lr, reg_scale)
+        self.optm = self.make_optimizer(optm, lr, weight_decay)
         self.lr_scheduler = self.make_lr_scheduler(self.optm, lr_scheduler_name, lr_decay_rate)
 
         # Time keeping
@@ -255,7 +255,7 @@ class Network(object):
         print('Inference finished, result in ypred shape', np.shape(Ypred))
         return Ypred
 
-    def evaluate(self, test_x, test_y,  save_dir='data/', prefix=''):
+    def evaluate(self, test_x, test_y,  save=False, save_dir='data/', prefix=''):
         # Make sure there is a place for the evaluation
         if not os.path.isdir(save_dir):
             os.makedirs(save_dir)
@@ -269,27 +269,41 @@ class Network(object):
         self.model.eval()
         
         saved_model_str = prefix
-        # Get the file names
-        Ypred_file = os.path.join(save_dir, 'test_Ypred_{}.csv'.format(saved_model_str))
-        Xtruth_file = os.path.join(save_dir, 'test_Xtruth_{}.csv'.format(saved_model_str))
-        Ytruth_file = os.path.join(save_dir, 'test_Ytruth_{}.csv'.format(saved_model_str))
+        if save:
+            # Get the file names
+            Ypred_file = os.path.join(save_dir, 'test_Ypred_{}.csv'.format(saved_model_str))
+            Xtruth_file = os.path.join(save_dir, 'test_Xtruth_{}.csv'.format(saved_model_str))
+            Ytruth_file = os.path.join(save_dir, 'test_Ytruth_{}.csv'.format(saved_model_str))
 
-        tk = time_keeper(os.path.join(save_dir, 'evaluation_time.txt'))
+            tk = time_keeper(os.path.join(save_dir, 'evaluation_time.txt'))
 
-        test_loader = get_test_data_into_loaders(test_x, test_y)
+            test_loader = get_test_data_into_loaders(test_x, test_y)
 
-        # Open those files to append
-        with open(Xtruth_file, 'a') as fxt,open(Ytruth_file, 'a') as fyt,\
+            # Open those files to append
+            with open(Xtruth_file, 'a') as fxt,open(Ytruth_file, 'a') as fyt,\
                 open(Ypred_file, 'a') as fyp:
-            for j, (geometry, spectra) in enumerate(test_loader):
-                if cuda:
-                    geometry = geometry.cuda()
-                    spectra = spectra.cuda()
-                Ypred = self.model(geometry).cpu().data.numpy()
-                np.savetxt(fxt, geometry.cpu().data.numpy())
-                np.savetxt(fyt, spectra.cpu().data.numpy())
-                np.savetxt(fyp, Ypred)
-        tk.record(1)                # Record the total time of the eval period
+                for j, (geometry, spectra) in enumerate(test_loader):
+                    if cuda:
+                        geometry = geometry.cuda()
+                        spectra = spectra.cuda()
+                    Ypred = self.model(geometry).cpu().data.numpy()
+                    np.savetxt(fxt, geometry.cpu().data.numpy())
+                    np.savetxt(fyt, spectra.cpu().data.numpy())
+                    np.savetxt(fyp, Ypred)
+            tk.record(1)                # Record the total time of the eval period
 
-        MSE = plotMSELossDistrib(Ypred_file, Ytruth_file)
+            MSE = plotMSELossDistrib(Ypred_file, Ytruth_file)
+        else:
+            test_loader = get_test_data_into_loaders(test_x, test_y)
+            truth = np.array([])
+            pred = np.array([])
+            for j, (geometry, spectra) in enumerate(test_loader):
+                    if cuda:
+                        geometry = geometry.cuda()
+                        spectra = spectra.cuda()
+                    Ypred = self.model(geometry).cpu().data.numpy()
+                    truth = np.append(truth, spectra.cpu().data.numpy())
+                    pred = np.append(pred, Ypred)
+            MSE = np.mean(np.square(truth-pred), axis=0)
+            print(MSE)
         return MSE
