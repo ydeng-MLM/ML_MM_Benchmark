@@ -222,21 +222,24 @@ class MonsterFB(nn.Module):
         Ytruth_file = os.path.join(save_dir, 'test_Ytruth_{}.csv'.format(saved_model_str))
 
         test_loader = DataLoader(helper.MyDataset(test_x,test_y))
-
-        # Open those files to append
-        with open(Xtruth_file, 'a') as fxt,open(Ytruth_file, 'a') as fyt,\
-                open(Ypred_file, 'a') as fyp:
-            for j, (geometry, spectra) in enumerate(test_loader):
-                
-                geometry = geometry.to(self.device)
-                spectra = spectra.to(self.device)
-                Ypred = self.forward(geometry).cpu().data.numpy()
-                np.savetxt(fxt, geometry.cpu().data.numpy())
-                np.savetxt(fyt, spectra.cpu().data.numpy())
-                np.savetxt(fyp, Ypred)
-
-        MSE = helper.plotMSELossDistrib(Ypred_file, Ytruth_file)
-        return MSE
+        if criterion is None:
+            criterion = nn.MSELoss()
+        mse_error = helper.eval_loader(self,test_loader,self.device,criterion)
+        
+        # Write to files if log_mode = True
+        if self.log_mode:
+          with open(Xtruth_file, 'a') as fxt,open(Ytruth_file, 'a') as fyt,\
+                  open(Ypred_file, 'a') as fyp:
+              for j, (geometry, spectra) in enumerate(test_loader):
+                  
+                  geometry = geometry.to(self.device)
+                  spectra = spectra.to(self.device)
+                  Ypred = self.forward(geometry).cpu().data.numpy()
+                  np.savetxt(fxt, geometry.cpu().data.numpy())
+                  np.savetxt(fyt, spectra.cpu().data.numpy())
+                  np.savetxt(fyp, Ypred)
+        
+        return mse_error
 
     def evaluate(self,x,y,criterion=None,):
         self.eval()
