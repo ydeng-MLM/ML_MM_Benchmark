@@ -128,7 +128,7 @@ model.load_model(pre_trained_model='Particle'\'AMD'\'Color'\None,
 pred_Y = model(test_X)
 
 # Model evaluation code: Give it test_X, test_Y, output MSE and generate a plot of MSE histogram in \data
-MSE = model.evaluate(test_x, test_y, save_dir='data/')
+MSE = model.evaluate(test_x, test_y, save_output=False, save_dir='data/')
 
 ```
 
