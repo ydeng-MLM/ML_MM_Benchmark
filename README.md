@@ -62,7 +62,7 @@ ADM refers to the All-dielectric metasurface dataset. Particle dataset refers to
 |----------------------------|------|-------|-------------------|-------------|-----------|
 |  All-dielectric metasurfac | 14   | 2001  | Metamaterials     | 60,000      | 7 months  |
 | Nanophotonic particle      | 8    | 201   | Nanophotonics     | 50,000      | 1.5 hours |
-| Color                      | 3    | 3     | Optical waveguids | 100,000     | -         |
+| Color                      | 3    | 3     | Optical waveguide | 100,000     | -         |
 
 
 #### Loading your own benchmark dataset into the framework
