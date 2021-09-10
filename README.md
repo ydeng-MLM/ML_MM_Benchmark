@@ -96,21 +96,21 @@ from AEML.models.Mixer import DukeMIXER
 from AEML.models.MLP import DukeMLP
 from AEML.models.Transformer import DukeTransformer
 
-# Defining all the models here (We highly recommend training the models one by one due to GPU RAM constraints
-MLP:
+# 1. Defining all the models here (We highly recommend training the models one by one due to GPU RAM constraints
+#MLP:
 model = DukeMLP(dim_g=3, dim_s=3, linear=[500, 500, 500, 500, 500, 500], skip_connection=False, skip_head=0, dropout=0, model_name=None)
 
-Transformer:
+#Transformer:
 model= DukeTransformer(dim_g, dim_s, feature_channel_num=32, nhead_encoder=8, 
                         dim_fc_encoder=64, num_encoder_layer=6, head_linear=None, 
                         tail_linear=None, sequence_length=8, model_name=None, 
                         ckpt_dir=os.path.join(os.path.abspath(''), 'models','Transformer'))
+#Mixer:
+model = DukeMIXER(dim_g, dim_s, mlp_dim=500, patch_size=10, mixer_layer_num=6,
+                embed_dim=128, token_dim=128, channel_dim=256, 
+                mlp_layer_num_front=3, mlp_layer_num_back=3)
 
-
-# model = DukeMLP(...)
-# model = DukeMIXER(...)
-
-# Model training code
+# 2. Model training code
 
 #MLP:
 model.train_(train_loader, test_loader, epochs=500, optm='Adam', weight_decay=1e-4,
