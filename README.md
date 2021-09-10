@@ -44,9 +44,9 @@ visible runtime
 3. Color Data Set. Please download and unzip from the [Repository](http://dx.doi.org/10.5258/SOTON/D1686).
 
 ### Download Pre-trained Models 
-1. MLP: Please download and unzip from the [folder]().
-2. Transformer: Please download and unzip from the [folder]().
-3. MLP-Mixer: Please download and unzip from the [folder]().
+1. MLP: Please download and unzip from the [folder](https://drive.google.com/drive/folders/1Br13vFIqvh-5Kpl7AeHH8CkTbkF2Bufa?usp=sharing).
+2. Transformer: Please download and unzip from the [folder](https://drive.google.com/drive/folders/1Br13vFIqvh-5Kpl7AeHH8CkTbkF2Bufa?usp=sharing).
+3. MLP-Mixer: Please download and unzip from the [folder](https://drive.google.com/drive/folders/1Br13vFIqvh-5Kpl7AeHH8CkTbkF2Bufa?usp=sharing).
 
 ### Install Package
 ```
