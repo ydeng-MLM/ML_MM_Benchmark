@@ -111,13 +111,20 @@ model= DukeTransformer(dim_g, dim_s, feature_channel_num=32, nhead_encoder=8,
 # model = DukeMIXER(...)
 
 # Model training code
-MLP:
+
+#MLP:
 model.train_(train_loader, test_loader, epochs=500, optm='Adam', weight_decay=1e-4,
             lr=1e-4, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.2, eval_step=10,
             stop_threshold=1e-7)
-Transformer:
-model.train(train_loader, test_loader, epochs=500, optm='Adam', reg_scale=5e-4, lr=1e-3, 
+
+#Transformer:
+model.train_(train_loader, test_loader, epochs=500, optm='Adam', reg_scale=5e-4, lr=1e-3, 
                         lr_schedueler_name='reduce_plateau',lr_decay_rate=0.3, eval_step=10)
+
+#Mixer:
+model.train_(train_loader, test_loader, epochs=500, optm='Adam', weight_decay=1e-4,
+            lr=1e-4, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.2, eval_step=10,
+            stop_threshold=1e-7)
 
 # Loading the model you just trained or hypersweeped or our provided pretrained model if 
 # you don't want to train it or just want to reproduce our result, only choose one between these 2
