@@ -21,7 +21,7 @@ def loader_to_numpy(loader):
     return g_total, s_total
 
 def MSE(pred, truth):
-    return np.mean(np.mean(np.square(pred - truth), axis=1))
+    return np.mean(np.square(pred - truth), axis=1)
 
 class LR(object):
     """
@@ -37,8 +37,8 @@ class LR(object):
         self.model.fit(train_x, train_y)
         train_pred_y = self.model.predict(train_x)
         test_pred_y = self.model.predict(test_x)
-        print('training MSE = {}, testing MSE = {}'.format(MSE(train_pred_y, train_y),
-                                                           MSE(test_pred_y, test_y)))
+        print('training MSE = {}, testing MSE = {}'.format(np.mean(MSE(train_pred_y, train_y)),
+                                                           np.mean(MSE(test_pred_y, test_y))))
     def __call__(self, X):
         return self.model.predict(X)
 
@@ -62,8 +62,8 @@ class SVR(object):
         self.model.fit(train_x, train_y)
         train_pred_y = self.model.predict(train_x)
         test_pred_y = self.model.predict(test_x)
-        print('training MSE = {}, testing MSE = {}'.format(MSE(train_pred_y, train_y), 
-                                                           MSE(test_pred_y, test_y)))
+        print('training MSE = {}, testing MSE = {}'.format(np.mean(MSE(train_pred_y, train_y)),
+                                                           np.mean(MSE(test_pred_y, test_y))))
     def __call__(self, X):
         return self.model.predict(X)
 
@@ -85,8 +85,8 @@ class RF(object):
         self.model.fit(train_x, train_y)
         train_pred_y = self.model.predict(train_x)
         test_pred_y = self.model.predict(test_x)
-        print('training MSE = {}, testing MSE = {}'.format(MSE(train_pred_y, train_y), 
-                                                           MSE(test_pred_y, test_y)))
+        print('training MSE = {}, testing MSE = {}'.format(np.mean(MSE(train_pred_y, train_y)),
+                                                           np.mean(MSE(test_pred_y, test_y))))
     def __call__(self, X):
         return self.model.predict(X)
 
