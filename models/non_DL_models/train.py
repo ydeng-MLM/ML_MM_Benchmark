@@ -11,8 +11,8 @@ from class_wrapper import SVR, LR, RF, MSE
 #model = LR()
 #model = RF()
 
-model_list = ['LR']#,'SVR','RF']
-data_list = ['ADM']#,'Color','Particle']
+model_list = ['LR','SVR','RF']
+data_list = ['ADM','Color','Particle']
 
 for model_str in model_list:
     for data in data_list:

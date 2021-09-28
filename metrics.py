@@ -7,6 +7,7 @@ import numpy as np
 import os
 from scipy.stats import spearmanr       # Spearman's Rho
 from scipy.stats import kendalltau                # Tau
+from sklearn.metrics import r2_score
 
 # Mean Squared Error metric
 def MSE(pred, truth, mean=False):
@@ -51,6 +52,10 @@ def MARE(pred, truth, mean=False):
         return np.mean(mare_list)
     else:
         return mare_list
+
+# R^2
+def R2(pred, truth):
+    return r2_score(truth, pred)
 
 # Spearman's Rho
 def SpearmanRho(pred, truth):

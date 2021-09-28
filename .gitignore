@@ -27,6 +27,7 @@ datasets/
 **.sh
 **.err
 **.out
+**results/
 **pidfile.txt
 **training time**
 **event**
