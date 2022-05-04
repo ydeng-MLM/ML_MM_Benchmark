@@ -134,6 +134,7 @@ class Network(object):
             self.model = torch.load(os.path.join(model_directory, 'best_model_forward.pt'))
             print("You have successfully loaded the model from ", model_directory)
         else:       # Loading the pretrained model from the internet
+            self.model = torch.load(os.path.join(model_directory, pre_trained_model, 'best_model_forward.pt'))
             print("You have successfully loaded the pretrained model for ", pre_trained_model)
 
             return 0
