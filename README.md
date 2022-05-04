@@ -44,13 +44,13 @@ visible runtime
 3. Color Data Set. Please download and unzip from the [Repository](http://dx.doi.org/10.5258/SOTON/D1686).
 
 ### Download Pre-trained Models 
-1. MLP: Please download and unzip from the [folder]().
-2. Transformer: Please download and unzip from the [folder]().
-3. MLP-Mixer: Please download and unzip from the [folder]().
+1. MLP: Please download and unzip from the [folder](https://drive.google.com/drive/folders/1Br13vFIqvh-5Kpl7AeHH8CkTbkF2Bufa?usp=sharing).
+2. Transformer: Please download and unzip from the [folder](https://drive.google.com/drive/folders/1Br13vFIqvh-5Kpl7AeHH8CkTbkF2Bufa?usp=sharing).
+3. MLP-Mixer: Please download and unzip from the [folder](https://drive.google.com/drive/folders/1Br13vFIqvh-5Kpl7AeHH8CkTbkF2Bufa?usp=sharing).
 
 ### Install Package
 ```
-pip install AEM3
+pip install AEML
 ```
 
 ### Loading data and Splitting
@@ -62,15 +62,15 @@ ADM refers to the All-dielectric metasurface dataset. Particle dataset refers to
 |----------------------------|------|-------|-------------------|-------------|-----------|
 |  All-dielectric metasurfac | 14   | 2001  | Metamaterials     | 60,000      | 7 months  |
 | Nanophotonic particle      | 8    | 201   | Nanophotonics     | 50,000      | 1.5 hours |
-| Color                      | 3    | 3     | Optical waveguids | 100,000     | -         |
+| Color                      | 3    | 3     | Optical waveguide | 100,000     | -         |
 
 
 #### Loading your own benchmark dataset into the framework
 Although we used AEM dataset for benchmarking, this suite is open and easily adaptable to a wide range of applications in the scientific computing community. To test your own custom dataset, simply normalize (or not, your choice, our loader would not normalize your dataset) and put your dataset into the Custom folder with the format: data_x.csv, data_y.csv where each file contains the input and output of the application. The shape should be [#Simulations, Dim_x] and [#Simulations, Dim_y] and separated by comma. Note that there should not be any header in the csv.
 
 ```
-import AEM3
-from AEM3.data import ADM, Particle, Color, load_custom_dataset
+import AEML
+from AEML.data import ADM, Particle, Color, load_custom_dataset
 
 # Load our pre-defined dataset
 train_loader, test_loader, test_x, test_y =ADM/Particle/Color(normalize=True/False, batch_size=1024)    # Loading the ADM dataset
@@ -92,32 +92,39 @@ As dscribed in section 5 in the paper, the architectures are modified slightly f
 #### Model hyper-parameter adjustment
 
 ```
-from models.Mixer import DukeMIXER
-from models.MLP import DukeMLP
-from models.Transformer import DukeTransformer
+from AEML.models.Mixer import DukeMIXER
+from AEML.models.MLP import DukeMLP
+from AEML.models.Transformer import DukeTransformer
 
-# Defining all the models here (We highly recommend training the models one by one due to GPU RAM constraints
-MLP:
-model = DukeMLP(dim_g=3, dim_s=3, linear=[500, 500, 500, 500, 500, 500], skip_connection=False, skip_head=0, dropout=0, model_name=None,
-                ckpt_dir=os.path.join(os.path.abspath(''), 'models','MLP'))
-Transformer:
+# 1. Defining all the models here (We highly recommend training the models one by one due to GPU RAM constraints
+#MLP:
+model = DukeMLP(dim_g=3, dim_s=3, linear=[500, 500, 500, 500, 500, 500], skip_connection=False, skip_head=0, dropout=0, model_name=None)
+
+#Transformer:
 model= DukeTransformer(dim_g, dim_s, feature_channel_num=32, nhead_encoder=8, 
                         dim_fc_encoder=64, num_encoder_layer=6, head_linear=None, 
                         tail_linear=None, sequence_length=8, model_name=None, 
                         ckpt_dir=os.path.join(os.path.abspath(''), 'models','Transformer'))
+#Mixer:
+model = DukeMIXER(dim_g, dim_s, mlp_dim=500, patch_size=10, mixer_layer_num=6,
+                embed_dim=128, token_dim=128, channel_dim=256, 
+                mlp_layer_num_front=3, mlp_layer_num_back=3)
 
+# 2. Model training code
 
-# model = DukeMLP(...)
-# model = DukeMIXER(...)
-
-# Model training code
-MLP:
+#MLP:
 model.train_(train_loader, test_loader, epochs=500, optm='Adam', weight_decay=1e-4,
             lr=1e-4, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.2, eval_step=10,
             stop_threshold=1e-7)
-Transformer:
-model.train(train_loader, test_loader, epochs=500, optm='Adam', reg_scale=5e-4, lr=1e-3, 
+
+#Transformer:
+model.train_(train_loader, test_loader, epochs=500, optm='Adam', reg_scale=5e-4, lr=1e-3, 
                         lr_schedueler_name='reduce_plateau',lr_decay_rate=0.3, eval_step=10)
+
+#Mixer:
+model.train_(train_loader, test_loader, epochs=500, optm='Adam', weight_decay=1e-4,
+            lr=1e-4, lr_scheduler_name='reduce_plateau', lr_decay_rate=0.2, eval_step=10,
+            stop_threshold=1e-7)
 
 # Loading the model you just trained or hypersweeped or our provided pretrained model if 
 # you don't want to train it or just want to reproduce our result, only choose one between these 2
@@ -128,7 +135,7 @@ model.load_model(pre_trained_model='Particle'\'AMD'\'Color'\None,
 pred_Y = model(test_X)
 
 # Model evaluation code: Give it test_X, test_Y, output MSE and generate a plot of MSE histogram in \data
-MSE = model.evaluate(test_x, test_y, save_dir='data/')
+MSE = model.evaluate(test_x, test_y, save_output=False, save_dir='data/')
 
 ```
 

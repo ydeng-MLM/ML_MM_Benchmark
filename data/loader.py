@@ -36,7 +36,7 @@ def load_ADM(normalize=False, batch_size=1024, rand_seed=0, test_ratio=0.2):
     train_loader, test_loader = get_data_into_loaders(data_x, data_y, batch_size, 
                         SimulatedDataSet_regress, rand_seed=rand_seed, test_ratio=test_ratio)
 
-    print("Finish loading Particle dataset")
+    print("Finish loading ADM dataset")
     return train_loader, test_loader, test_x, test_y
 
 def load_Particle(normalize=False, batch_size=1024, rand_seed=0, test_ratio=0.2):
@@ -102,7 +102,7 @@ def load_Color(normalize=False, batch_size=1024, rand_seed=0, test_ratio=0.2):
     train_loader, test_loader = get_data_into_loaders(data_x, data_y, batch_size, 
                         SimulatedDataSet_regress, rand_seed=rand_seed, test_ratio=test_ratio)
 
-    print("Finish loading Particle dataset")
+    print("Finish loading Color dataset")
     return train_loader, test_loader, test_x, test_y
 
 def load_custom_dataset(normalize=False, batch_size=1024, rand_seed=0, test_ratio=0.2):
@@ -154,7 +154,7 @@ def load_custom_dataset(normalize=False, batch_size=1024, rand_seed=0, test_rati
     train_loader, test_loader = get_data_into_loaders(data_x, data_y, batch_size, 
                         SimulatedDataSet_regress, rand_seed=rand_seed, test_ratio=test_ratio)
 
-    print("Finish loading Particle dataset")
+    print("Finish loading Custom dataset")
     return train_loader, test_loader, test_x, test_y
 
 def train_val_test_split(data_set, batch_size=1024, rand_seed=0, test_ratio=0.2):

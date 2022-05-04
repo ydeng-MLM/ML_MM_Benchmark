@@ -16,10 +16,10 @@ import numpy as np
 from math import inf
 import pandas as pd
 # Own module
-from data.loader import get_data_into_loaders_only_x, get_test_data_into_loaders
-from models.MLP.model_maker import Forward
-from models.MLP.utils.evaluation_helper import plotMSELossDistrib
-from models.MLP.utils.time_recorder import time_keeper
+from AEML.data.loader import get_data_into_loaders_only_x, get_test_data_into_loaders
+from AEML.models.MLP.model_maker import Forward
+from AEML.models.MLP.utils.evaluation_helper import plotMSELossDistrib
+from AEML.models.MLP.utils.time_recorder import time_keeper
 
 class Network(object):
     def __init__(self, dim_g, dim_s, linear=[500, 500, 500, 500, 500, 500], skip_connection=False, skip_head=0, dropout=0, model_name=None, 

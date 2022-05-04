@@ -16,9 +16,9 @@ import numpy as np
 from math import inf
 import pandas as pd
 # Own module
-from data.loader import get_data_into_loaders_only_x, get_test_data_into_loaders
-from models.Transformer.model_maker import Transformer
-from models.Transformer.utils.evaluation_helper import plotMSELossDistrib
+from AEML.data.loader import get_data_into_loaders_only_x, get_test_data_into_loaders
+from AEML.models.Transformer.model_maker import Transformer
+from AEML.models.Transformer.utils.evaluation_helper import plotMSELossDistrib
 
 class Network(object):
     def __init__(self, dim_g, dim_s, feature_channel_num=32, nhead_encoder=8, 
