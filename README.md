@@ -24,10 +24,7 @@ Schematics of geometry in three physical problems. (a) Infinite array of all-die
 | Matplotlib | \>= 3.1.3|
 | einops | \>= 0.3.0|
 | seaborn | \>= 0.11.2|
-### Environment
-1. The detailed conda environment is packaged in [.yml file](./demo/environment_droplet.yml).
-2. Add the [Benchmarking folder](./Benchmarking%20Algorithms) as one of the source directory to make utils and Simulated_Dataset folders 
-visible runtime
+
 
 ## Features 
 * Access to various ADM data sets 
