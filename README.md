@@ -58,7 +58,7 @@ ADM refers to the All-dielectric metasurface dataset. Particle dataset refers to
 | Dataset                    | D_in | D_out | Sub_area          | Simulations | Simulation CPU time  |
 |----------------------------|------|-------|-------------------|-------------|-----------|
 |  All-dielectric metasurfac | 14   | 2001  | Metamaterials     | 60,000      | 7 months  |
-| Nanophotonic particle      | 8    | 201   | Nanophotonics     | 50,000      | 1.5 hours |
+| Nanophotonic particle      | 8    | 201   | Nanophotonics     | 50,000      | 11 hours |
 | Color                      | 3    | 3     | Optical waveguide | 100,000     | -         |
 
 
